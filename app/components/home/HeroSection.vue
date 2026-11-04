@@ -2,6 +2,7 @@
 import HomeFigmaText from './HomeFigmaText.vue';
 import { homeCopyRefs } from '~/data/home-r2-composition';
 import { homeFigmaText } from '~/data/home-r2-copy';
+import { HOME_FILM_COPY_LABEL } from '~/utils/homeFilmCopyPresentation';
 const copy=homeCopyRefs.hero;
 
 // MOBILE_R1 is a display-only copy override. The frozen Figma text and digest stay intact.
@@ -19,7 +20,7 @@ if (copy.heading!=='node-35:5' ||
         <span class="smd-home__hero-heading-source"><HomeFigmaText :text-key="copy.heading" /></span>
         <span class="smd-home__hero-heading-mobile" data-mobile-heading="MOBILE_HERO_COPY_R1"
           :data-source-text-digest="frozenHeading.textDigest">
-          <span class="smd-home__hero-mobile-line">업계최초 인테리어 유리필름</span>
+          <span class="smd-home__hero-mobile-line">업계최초 {{ HOME_FILM_COPY_LABEL }}</span>
           <span class="smd-home__hero-mobile-line">실무자 양성 프로그램 운영</span>
         </span>
       </h1>
