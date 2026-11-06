@@ -8,6 +8,8 @@ export type InfoLayoutItem = Readonly<{
   index: number;
   iconKey: string;
   textKey: string;
+  /** Section-local SVG Y delta; does not change frozen Figma geometry. */
+  iconOpticalY?: number;
 }>;
 export type InfoPlacement = Readonly<{
   kind: 'icon' | 'text';
@@ -69,6 +71,9 @@ export function createHomeInfoLayout(
   const texts: InfoNode[] = [];
   for (let index = 0; index < items.length; index++) {
     const item = items[index]!;
+    if (item.iconOpticalY !== undefined && (!Number.isFinite(item.iconOpticalY) || Math.abs(item.iconOpticalY) > 32)) {
+      throw new Error(`SMD_HOME_INFO_OPTICAL_Y_INVALID:${index}`);
+    }
     const icon = nodes[item.iconKey];
     const label = nodes[item.textKey];
     if (item.index !== index || !icon || !label || icon.parent !== groupKey || label.parent !== groupKey) {
@@ -97,7 +102,8 @@ export function createHomeInfoLayout(
     const centerLocalX = text.rect[0] + text.rect[2] / 2;
     const scaledIconW = icon.rect[2] * HOME_INFO_ICON_SCALE;
     const iconXLocal = centerLocalX - scaledIconW / 2;
-    const iconYLocal = iconBottomY - group.rect[1] - icon.rect[3] * HOME_INFO_ICON_SCALE;
+    const iconYLocal = iconBottomY - group.rect[1] - icon.rect[3] * HOME_INFO_ICON_SCALE
+      + (item.iconOpticalY ?? 0);
     const textXLocal = centerLocalX - text.rect[2] * HOME_INFO_TEXT_SCALE / 2;
     const textYLocal = textTopY - group.rect[1];
     const iconSourceX = icon.rect[0], iconSourceY = icon.rect[1];

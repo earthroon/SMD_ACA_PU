@@ -1,13 +1,9 @@
 <script setup lang="ts">
 import HomeFigmaText from './HomeFigmaText.vue';
 import { homeCopyRefs } from '~/data/home-r2-composition';
-import { useSiteContent } from '~/composables/useSiteContent';
-const content = useSiteContent();
+import { usePublicConsultationHref } from '~/composables/usePublicConsultationHref';
+const consultationHref = usePublicConsultationHref();
 const copy = homeCopyRefs.consultation;
-const consultationHref = computed(() => {
-  const value = content.value?.navigation.kakaoUrl;
-  return typeof value === 'string' && /^https:\/\/[^\s/]+(?:\/[^\s]*)?$/.test(value) ? value : null;
-});
 </script>
 <template>
   <section data-home-section="consultation-cta" data-figma-node="node-1:20" class="smd-home-section smd-home--consultation-cta">

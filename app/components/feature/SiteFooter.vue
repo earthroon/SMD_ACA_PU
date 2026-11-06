@@ -1,8 +1,12 @@
 <script setup lang="ts">
 import {useSiteContent} from '~/composables/useSiteContent';
+import { publicExternalActionsAllowed } from '~/utils/publicExternalActionPolicy';
+import { usePublicConsultationHref } from '~/composables/usePublicConsultationHref';
 const c=useSiteContent();
 const pages=computed(()=>c.value?.pages);
 const content = useSiteContent();
+const externalAllowed = computed(() => publicExternalActionsAllowed(content.value));
+const consultationHref = usePublicConsultationHref();
 const nav = computed(() => [
   ...(content.value?.navigation.leftNav ?? []),
   ...(content.value?.navigation.rightNav ?? []),
@@ -38,28 +42,29 @@ const nav = computed(() => [
         <div>
           <div class="font-label text-[11px] uppercase tracking-[0.24em] text-foreground-500">{{ pages?.shared.footer.contactHeading }}</div>
           <div class="mt-4 font-heading text-xl font-semibold tracking-tight text-foreground-950">{{ content?.navigation.contactPhone }}</div>
-          <div class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
-            <a
-              :href="content?.navigation.kakaoUrl"
+          <div v-if="consultationHref || externalAllowed" class="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
+            <a v-if="consultationHref"
+              :href="consultationHref"
               target="_blank"
               rel="noopener noreferrer"
               class="inline-flex items-center gap-1.5 text-foreground-700 transition-colors hover:text-primary-600"
             ><i class="ri-kakao-talk-fill text-base"></i>카카오톡 채널</a>
-            <span class="text-background-400">|</span>
-            <a
+            <span v-if="consultationHref && externalAllowed" class="text-background-400">|</span>
+            <a v-if="externalAllowed"
               :href="content?.navigation.instagramUrl"
               target="_blank"
               rel="noopener noreferrer"
               class="inline-flex items-center gap-1.5 text-foreground-700 transition-colors hover:text-primary-600"
             ><i class="ri-instagram-line text-base"></i>인스타그램</a>
-            <span class="text-background-400">|</span>
-            <a
+            <span v-if="externalAllowed" class="text-background-400">|</span>
+            <a v-if="externalAllowed"
               :href="content?.navigation.youtubeUrl"
               target="_blank"
               rel="noopener noreferrer"
               class="inline-flex items-center gap-1.5 text-foreground-700 transition-colors hover:text-primary-600"
             ><i class="ri-youtube-line text-base"></i>유튜브</a>
           </div>
+          <p v-else class="mt-4 text-sm text-foreground-500" role="status">외부 채널 연결 준비 중입니다.</p>
           <NuxtLink to="/contact" class="btn-ghost mt-6">상담 문의 남기기</NuxtLink>
         </div>
       </div>

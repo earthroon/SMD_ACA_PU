@@ -11,7 +11,7 @@ const scene = JSON.parse(source('app/data/figma-r2-scene.generated.ts').split('=
 const ids = ['special-start','training-track','benefits','methods','location','faq','consultation-cta'];
 const infoItems = [
   {index:0,iconKey:'node-1:320',textKey:'node-1:154'},
-  {index:1,iconKey:'node-1:395',textKey:'node-1:400'},
+  {index:1,iconKey:'node-1:395',textKey:'node-1:400',iconOpticalY:19},
   {index:2,iconKey:'node-1:411',textKey:'node-1:404'},
   {index:3,iconKey:'node-18:26',textKey:'node-18:58'},
 ];
@@ -75,7 +75,7 @@ test('CF3 icon widths retain source ratios and text centers stay aligned',()=>{
     near(icon.targetWidth,originalWidths[index]*.7);
     near(icon.targetX+icon.targetWidth/2,text.targetX+text.targetWidth/2+(index===3?scene.nodes['node-18:118'].rect[0]:0));
     const groupY=scene.nodes['node-18:118'].rect[1];
-    near(icon.targetY+icon.targetHeight+(index===3?0:groupY),p.iconBottomY);
+    near(icon.targetY+icon.targetHeight+(index===3?0:groupY),p.iconBottomY+(index===1?19:0));
     near(text.targetY+groupY,p.textTopY);
     near(text.targetHeight,54.9);
   });
@@ -103,4 +103,23 @@ test('CF2 / CF3 source maintains Header, intro timing and generated original byt
   const timing=source('app/utils/homeIntroTimeline.ts');
   for (const value of ['barDurationMs: 430','barToIconDelayMs: 30','iconStaggerMs: 60','iconDurationMs: 350','postRevealSettleMs: 120','wheelQuietMs: 220']) assert.ok(timing.includes(value));
   assert.ok(!bodyCss.includes('scale(0.75)'));
+});
+
+test('optical Y only moves the helmet and leaves scene source immutable',()=>{
+  const base=infoItems.map(({iconOpticalY,...item})=>item);
+  const original=createHomeInfoLayout(scene.nodes,'node-1:134','node-18:118',base);
+  const optical=createHomeInfoLayout(scene.nodes,'node-1:134','node-18:118',infoItems);
+  for(const [index,item] of infoItems.entries()){
+    const a=original.nodeTransforms[item.iconKey]??original.fileIcon;
+    const b=optical.nodeTransforms[item.iconKey]??optical.fileIcon;
+    near(b.targetY-a.targetY,index===1?19:0);
+    near(b.targetX,a.targetX);
+    near(b.targetWidth,a.targetWidth);
+    near(b.targetHeight,a.targetHeight);
+    assert.deepEqual(optical.nodeTransforms[item.textKey],original.nodeTransforms[item.textKey]);
+  }
+  for(const delta of [NaN,Infinity,33,-33])
+    assert.throws(()=>createHomeInfoLayout(scene.nodes,'node-1:134','node-18:118',infoItems.map((x,i)=>i===1?{...x,iconOpticalY:delta}:x)),/OPTICAL_Y_INVALID/);
+  assert.match(source('app/assets/css/home-info-compact.css'),/foreignObject\[data-figma-text-instance="node-18:59"\]/);
+  assert.match(source('app/assets/css/home-info-compact.css'),/width: max-content/);
 });

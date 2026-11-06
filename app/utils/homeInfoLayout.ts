@@ -10,7 +10,7 @@ if (figmaScene.sourceSnapshotDigest !== SOURCE_DIGEST) {
 
 const items = [
   { index: 0, iconKey: 'node-1:320', textKey: 'node-1:154' },
-  { index: 1, iconKey: 'node-1:395', textKey: 'node-1:400' },
+  { index: 1, iconKey: 'node-1:395', textKey: 'node-1:400', iconOpticalY: 19 },
   { index: 2, iconKey: 'node-1:411', textKey: 'node-1:404' },
   { index: 3, iconKey: 'node-18:26', textKey: 'node-18:58' },
 ] satisfies readonly InfoLayoutItem[];

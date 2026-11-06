@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { useSiteContent } from '~/composables/useSiteContent';
+import { usePublicConsultationHref } from '~/composables/usePublicConsultationHref';
 import { HOME_HEADER_BRAND_R1, assertHomeHeaderBrandR1 } from '~/data/home-r2-brand-display';
-import { homeHeaderNavigationV2, assertHomeHeaderNavigationV2, validPublishedKakaoUrl } from '~/data/home-r2-navigation';
+import { homeHeaderNavigationV2, assertHomeHeaderNavigationV2 } from '~/data/home-r2-navigation';
 
 assertHomeHeaderNavigationV2();
 assertHomeHeaderBrandR1();
-const content = useSiteContent();
+const ctaHref = usePublicConsultationHref();
 const route = useRoute();
 const scrolled = ref(false);
 const open = ref(false);
@@ -13,7 +13,6 @@ const toggle = ref<HTMLButtonElement | null>(null);
 const nav = homeHeaderNavigationV2.items; // Same owner for both desktop and compact navigation.
 
 const active = (to: string) => route.path === to;
-const ctaHref = computed(() => validPublishedKakaoUrl(content.value?.navigation.kakaoUrl));
 const brand = HOME_HEADER_BRAND_R1.displayText;
 
 let oldBodyOverflow: string | null = null;

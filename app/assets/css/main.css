@@ -8,6 +8,8 @@
   --smd-action-orange: #D95E22;
   /* Shared PSD-authored surfaces, reused by About and Curriculum. */
   --smd-brand-navy: #172C57;
+  --smd-curriculum-week-title-idle: #000000;
+  --smd-curriculum-week-title-active: #FFFFFF;
   --smd-surface-panel: #F2F6FF;
   --smd-surface-alternate: #F2F2F2;
   --smd-footer-background: #2E2E2E;
@@ -115,6 +117,7 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    scrollbar-gutter: stable;
     -webkit-font-smoothing: antialiased;
   }
 

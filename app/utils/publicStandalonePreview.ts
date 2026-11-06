@@ -8,7 +8,8 @@ import { LEGACY_CANONICAL_PATHS, LEGACY_SEO_TITLES } from '@smd/content-contract
 import { LEGACY_PAGE_IDS } from '@smd/content-contracts/cms-kind-registry';
 import type { SelectedPublicPageState } from '../composables/useSelectedCategoryPage';
 
-export const STANDALONE_PREVIEW_PUBLICATION_ID = 'STANDALONE_PREVIEW_NOT_PUBLISHED';
+import { STANDALONE_PREVIEW_PUBLICATION_ID } from './publicExternalActionPolicy';
+export { STANDALONE_PREVIEW_PUBLICATION_ID } from './publicExternalActionPolicy';
 
 /** Only existing, concrete Public pages are admitted. CMS-only category routes remain closed. */
 export function standalonePreviewPathAllowed(path: string): boolean {

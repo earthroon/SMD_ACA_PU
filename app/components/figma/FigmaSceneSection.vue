@@ -3,6 +3,7 @@ import HomeHeroFilm from '~/components/home/HomeHeroFilm.vue';
 import FigmaR4UserFileIcon from './FigmaR4UserFileIcon.vue';
 import {figmaScene} from '~/data/figma-r2-scene.generated';
 import {useSiteContent} from '~/composables/useSiteContent';
+import { usePublicConsultationHref } from '~/composables/usePublicConsultationHref';
 import {useHomeR2Published} from '~/composables/useHomeR2Published';
 import FigmaSceneNode from './FigmaSceneNode.vue';
 import { homeInfoLayout } from '~/utils/homeInfoLayout';
@@ -14,10 +15,7 @@ const root=computed(()=>section.value?.nodeKey??'');
 const sceneHeight=computed(()=>props.sectionId==='info-bar'?homeInfoLayout.barHeight:section.value?.height??1);
 const viewBox=computed(()=>`0 0 1920 ${sceneHeight.value}`);
 const content=useSiteContent(); const published=useHomeR2Published();
-const ctaHref=computed(()=>{
- const v=content.value?.navigation.kakaoUrl;
- return typeof v==='string'&&/^https:\/\/[^\s/]+(?:\/[^\s]*)?$/.test(v)?v:null;
-});
+const ctaHref = usePublicConsultationHref();
 const faq=computed(()=>{
  if(!published.value||!content.value||published.value.publicationId!==content.value.publication.id||
    published.value.publicationDigest!==content.value.publication.digest)return [];
