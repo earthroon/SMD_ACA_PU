@@ -68,6 +68,23 @@ export function assertHomeHeaderNavigationV2(): void {
       homeFigmaText['node-1:11'].characters !== 'SMD 아카데미') fail();
 }
 
+/** Standalone-only navigation. The CMS V2 path remains byte-semantic compatible. */
+export const homeHeaderNavigationV3 = {
+  ...homeHeaderNavigationV2,
+  contract: 'SMD_HOME_HEADER_NAV_V3',
+  cta: { ...homeHeaderNavigationV2.cta, action: 'internal-route', to: '/contact' },
+} as const;
+
+export function assertHomeHeaderNavigationV3(): void {
+  assertHomeHeaderNavigationV2();
+  const cta = homeHeaderNavigationV3.cta;
+  if (homeHeaderNavigationV3.contract !== 'SMD_HOME_HEADER_NAV_V3' ||
+      cta.sourceNodeKey !== 'node-1:19' || cta.label !== '상담신청' ||
+      cta.action !== 'internal-route' || cta.to !== '/contact') {
+    throw new Error('SMD_HOME_HEADER_NAV_V3_SCHEMA_INVALID');
+  }
+}
+
 /** Only the published, current navigation document may supply the action URL. */
 export function validPublishedKakaoUrl(value: unknown): string | null {
   if (typeof value !== 'string' || value.length > 2048) return null;
@@ -77,4 +94,14 @@ export function validPublishedKakaoUrl(value: unknown): string | null {
       /^\/o\/[a-zA-Z0-9]+\/?$/.test(url.pathname) && !url.username && !url.password &&
       !url.search && !url.hash ? value : null;
   } catch { return null; }
+}
+
+/** CF5 runtime availability projection. Figma source nav and CMS status are unchanged. */
+export function homeHeaderTargetStatus(
+  item: HeaderItemV2, mode: 'standalone' | 'cms',
+): 'ready' | 'scaffold' {
+  switch (item.id) {
+    case 'reviews': return mode === 'standalone' ? 'ready' : 'scaffold';
+    default: return item.targetStatus === 'existing' ? 'ready' : 'scaffold';
+  }
 }

@@ -2,6 +2,7 @@
 import {useSiteContent} from '~/composables/useSiteContent';
 import { publicExternalActionsAllowed } from '~/utils/publicExternalActionPolicy';
 import { usePublicConsultationHref } from '~/composables/usePublicConsultationHref';
+import { galleryNavigationPresentation } from '~/utils/gallery-presentation';
 const c=useSiteContent();
 const pages=computed(()=>c.value?.pages);
 const content = useSiteContent();
@@ -10,7 +11,7 @@ const consultationHref = usePublicConsultationHref();
 const nav = computed(() => [
   ...(content.value?.navigation.leftNav ?? []),
   ...(content.value?.navigation.rightNav ?? []),
-]);
+].map(galleryNavigationPresentation));
 </script>
 
 <template>

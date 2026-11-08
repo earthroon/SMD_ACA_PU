@@ -1,4 +1,4 @@
-name = "smd-web"
+name = "smd-aca-pu"
 main = ".output/server/index.mjs"
 compatibility_date = "2026-10-12"
 compatibility_flags = ["nodejs_compat"]

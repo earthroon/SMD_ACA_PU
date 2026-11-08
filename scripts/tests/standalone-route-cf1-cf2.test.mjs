@@ -128,16 +128,24 @@ test('standalone root admits all local pages with matching identity and no CMS n
  assert.equal(h.calls,0);
 });
 
-test('home and local review/FAQ scaffolds have no fake selected CMS content',async()=>{
+test('home and FAQ still scaffold; Standalone reviews admits unpublished shared Footer only',async()=>{
  const h=await rootHarness('standalone','/about');
  await h.navigate('/about');
- for(const path of ['/','/reviews','/faq']){
+ for(const path of ['/','/faq']){
   const r=await h.navigate(path);
   assert.equal(h.current,true); assert.equal(h.selected.value,null);
   assert.equal(h.content.value,null); assert.equal(h.published.value,null);
   assert.equal(h.robots,undefined);
   assert.equal(r.kind,path==='/'?'home':'scaffold');
  }
+ const r=await h.navigate('/reviews');
+ assert.equal(r.mode,'standalone'); assert.equal(r.kind,'reviews');
+ assert.equal(r.path,'/reviews'); assert.equal(h.current,true);
+ assert.equal(h.selected.value,null); assert.equal(h.published.value,null);
+ assert.equal(h.content.value.publication.id,STANDALONE_PREVIEW_PUBLICATION_ID);
+ assert.equal(h.content.value.publication.digest,r.local.publication.digest);
+ assert.equal(h.robots,'noindex,follow');
+ assert.equal(publicExternalActionsAllowed(h.content.value),false);
  assert.equal(h.calls,0);
 });
 

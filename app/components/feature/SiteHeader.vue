@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { usePublicConsultationHref } from '~/composables/usePublicConsultationHref';
 import { HOME_HEADER_BRAND_R1, assertHomeHeaderBrandR1 } from '~/data/home-r2-brand-display';
-import { homeHeaderNavigationV2, assertHomeHeaderNavigationV2 } from '~/data/home-r2-navigation';
+import { homeHeaderNavigationV2, homeHeaderNavigationV3, assertHomeHeaderNavigationV2, assertHomeHeaderNavigationV3, homeHeaderTargetStatus } from '~/data/home-r2-navigation';
+import { useContentMode } from '~/composables/useContentMode';
+import { GALLERY_FIGMA_FILE_KEY, galleryHeaderNodeForItem } from '~/utils/gallery-presentation';
 
 assertHomeHeaderNavigationV2();
+assertHomeHeaderNavigationV3();
 assertHomeHeaderBrandR1();
 const ctaHref = usePublicConsultationHref();
 const route = useRoute();
@@ -11,8 +14,11 @@ const scrolled = ref(false);
 const open = ref(false);
 const toggle = ref<HTMLButtonElement | null>(null);
 const nav = homeHeaderNavigationV2.items; // Same owner for both desktop and compact navigation.
+const headerContentMode = useContentMode();
+const standalone = headerContentMode === 'standalone';
 
 const active = (to: string) => route.path === to;
+const galleryHeader = computed(() => route.path === '/archive');
 const brand = HOME_HEADER_BRAND_R1.displayText;
 
 let oldBodyOverflow: string | null = null;
@@ -55,12 +61,13 @@ const figmaLogoError = ref(false);
 <template>
   <header
     :class="['smd-site-header', { 'smd-site-header--scrolled': scrolled || open }]"
-    data-header-contract="SMD_HOME_HEADER_NAV_V2"
-    data-figma-node="node-1:6"
+    :data-header-contract="standalone ? 'SMD_HOME_HEADER_NAV_V3' : 'SMD_HOME_HEADER_NAV_V2'"
+    :data-figma-node="galleryHeader ? 'node-1:4' : 'node-1:6'"
+    :data-figma-file-key="galleryHeader ? GALLERY_FIGMA_FILE_KEY : undefined"
   >
     <div class="smd-site-header__inner">
       <NuxtLink to="/" class="smd-site-header__brand" :aria-label="`${brand} 홈으로`" @click="closeDrawer()">
-        <span class="smd-site-header__symbol">
+        <span class="smd-site-header__symbol" :data-figma-node="galleryHeader ? 'node-1:6' : undefined">
           <img v-if="!figmaLogoError"
             src="/figma/smd-academy-header-logo.svg"
             class="smd-site-header__figma-logo"
@@ -68,20 +75,27 @@ const figmaLogoError = ref(false);
             @error="figmaLogoError = true" />
           <span v-else class="smd-site-header__logo-error" role="status">로고 오류</span>
         </span>
-        <span class="smd-site-header__brand-label">{{ brand }}</span>
+        <span class="smd-site-header__brand-label" :data-figma-node="galleryHeader ? 'node-1:21' : undefined">{{ brand }}</span>
       </NuxtLink>
 
       <nav class="smd-site-header__desktop-nav" aria-label="주 메뉴">
         <NuxtLink
           v-for="item in nav" :key="item.id" :to="item.to"
-          :data-header-item="item.id" :data-figma-node="item.sourceNodeKey"
+          :data-header-item="item.id" :data-target-status="homeHeaderTargetStatus(item, headerContentMode)" :data-figma-node="galleryHeaderNodeForItem(route.path, item.id, item.sourceNodeKey)"
           :aria-current="active(item.to) ? 'page' : undefined"
           class="smd-site-header__nav-link"
         >{{ item.label }}</NuxtLink>
       </nav>
 
-      <a v-if="ctaHref" :href="ctaHref" target="_blank" rel="noopener noreferrer"
-        class="smd-site-header__cta smd-site-header__desktop-cta" data-figma-node="node-1:19"
+      <NuxtLink v-if="standalone" to="/contact"
+        class="smd-site-header__cta smd-site-header__desktop-cta"
+        :data-figma-node="galleryHeader ? 'node-1:22' : 'node-1:19'"
+        :data-figma-background-node="galleryHeader ? 'node-1:23' : undefined"
+      >{{ homeHeaderNavigationV3.cta.label }}</NuxtLink>
+      <a v-else-if="ctaHref" :href="ctaHref" target="_blank" rel="noopener noreferrer"
+        class="smd-site-header__cta smd-site-header__desktop-cta"
+        :data-figma-node="galleryHeader ? 'node-1:22' : 'node-1:19'"
+        :data-figma-background-node="galleryHeader ? 'node-1:23' : undefined"
       >{{ homeHeaderNavigationV2.cta.label }}</a>
       <span v-else class="smd-site-header__cta-unavailable smd-site-header__desktop-cta" role="status">상담 연결 불가</span>
 
@@ -95,9 +109,11 @@ const figmaLogoError = ref(false);
       <nav class="smd-site-header__drawer-nav" aria-label="모바일 메뉴">
         <NuxtLink v-for="item in nav" :key="item.id" :to="item.to"
           class="smd-site-header__drawer-link" :aria-current="active(item.to) ? 'page' : undefined"
-          :data-header-item="item.id" @click="closeDrawer()"
+          :data-header-item="item.id" :data-target-status="homeHeaderTargetStatus(item, headerContentMode)" @click="closeDrawer()"
         >{{ item.label }}</NuxtLink>
-        <a v-if="ctaHref" :href="ctaHref" target="_blank" rel="noopener noreferrer"
+        <NuxtLink v-if="standalone" to="/contact" class="smd-site-header__drawer-cta"
+          @click="closeDrawer()">{{ homeHeaderNavigationV3.cta.label }}</NuxtLink>
+        <a v-else-if="ctaHref" :href="ctaHref" target="_blank" rel="noopener noreferrer"
           class="smd-site-header__drawer-cta" @click="closeDrawer()"
         >{{ homeHeaderNavigationV2.cta.label }}</a>
         <p v-else class="smd-site-header__drawer-unavailable" role="status">상담 연결을 사용할 수 없습니다.</p>

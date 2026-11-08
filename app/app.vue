@@ -23,6 +23,7 @@ const selected = useSelectedCategoryPage();
 const requestKey = computed(() => {
   switch (true) {
     case isStatic.value: return `smd-static:${route.path}`;
+    case standalone && route.path === '/reviews': return 'smd-reviews-standalone:/reviews';
     case resolveHomeScaffoldPath(route.path) !== null: return `smd-scaffold:${route.path}`;
     default: return `smd-render:${route.path}`;
   }
@@ -30,6 +31,7 @@ const requestKey = computed(() => {
 type RootResult =
   | { mode: 'static'; path: string }
   | { mode: 'standalone'; path: string; kind: 'home' | 'scaffold' }
+  | { mode: 'standalone'; path: '/reviews'; kind: 'reviews'; local: PublicContentV2 }
   | { mode: 'standalone'; path: string; kind: 'legacy'; local: PublicContentV2; localSelected: SelectedPublicPageState }
   | { mode: 'public'; path: string; render: PublicRenderResult }
   | { mode: 'redirect'; path: string; to: string }
@@ -45,7 +47,15 @@ const { data, error, pending } = await useAsyncData<RootResult>(requestKey, asyn
       throw createError({ statusCode: 404, statusMessage: 'PUBLIC_STANDALONE_ROUTE_NOT_FOUND' });
     switch (path) {
       case '/': return { mode: 'standalone', path, kind: 'home' };
-      case '/reviews':
+      case '/reviews': {
+        let local: PublicContentV2;
+        try { local = standalonePreviewContent(); }
+        catch (failure: unknown) {
+          throw createError({ statusCode: 503, statusMessage: 'PUBLIC_STANDALONE_PREVIEW_SOURCE_INVALID',
+            data: { causeCode: failure instanceof Error ? failure.message : 'UNKNOWN' } });
+        }
+        return { mode: 'standalone', path, kind: 'reviews', local };
+      }
       case '/faq': return { mode: 'standalone', path, kind: 'scaffold' };
       default: {
         let local: PublicContentV2;
@@ -111,6 +121,10 @@ watch([data, () => route.path], ([result, path]) => {
             selected.value = null;
             content.value = null;
             return;
+          case 'reviews':
+            selected.value = null;
+            content.value = result.local;
+            return;
           case 'legacy':
             content.value = result.local;
             selected.value = result.localSelected;
@@ -174,8 +188,16 @@ const current = computed(() => {
           homePublished.value !== null) return false;
       switch (r.kind) {
         case 'home': return route.path === '/' && content.value === null && selected.value === null;
-        case 'scaffold': return (route.path === '/reviews' || route.path === '/faq') &&
+        case 'scaffold': return route.path === '/faq' &&
           content.value === null && selected.value === null;
+        case 'reviews': {
+          const c = content.value;
+          return route.path === '/reviews' && selected.value === null &&
+            c !== null && c.publication.id === STANDALONE_PREVIEW_PUBLICATION_ID &&
+            c.publication.id === r.local.publication.id &&
+            c.publication.digest === r.local.publication.digest &&
+            c.publication.revision === r.local.publication.revision;
+        }
         case 'legacy': {
           const c = content.value, s = selected.value, expected = r.localSelected;
           return Boolean(c && s && s.selected.mode === 'legacy' && expected.selected.mode === 'legacy' &&
@@ -203,9 +225,10 @@ const current = computed(() => {
 });
 // Unpublished local preview pages must not become indexable CMS publications.
 useSeoMeta({ robots: () => standalone && current.value &&
-  data.value?.mode === 'standalone' && data.value.kind === 'legacy' &&
-  selected.value?.selected.mode === 'legacy' && selected.value.selected.seo.noindex
-    ? 'noindex,follow' : undefined });
+  data.value?.mode === 'standalone' && (
+    data.value.kind === 'reviews' || (data.value.kind === 'legacy' &&
+    selected.value?.selected.mode === 'legacy' && selected.value.selected.seo.noindex)
+  ) ? 'noindex,follow' : undefined });
 </script>
 <template>
   <NuxtLayout>
