@@ -4,6 +4,7 @@ import {r3MethodsTextOverride} from '~/data/figma-r2-visual-r3';
 import {homeVisibleBrandText} from '~/utils/homeBrandVisibleText';
 import {homeVisibleFilmText, isHomeFilmCopyNode} from '~/utils/homeFilmCopyPresentation';
 import {isHomeSpecialEmphasisRun, presentHomeSpecialPointRuns} from '~/utils/homeSpecialPointPresentation';
+import {assertHomeTrainingR5TextSource, homeTrainingR5PaintWidth, HOME_TRAINING_R5_FIELD_NODE} from '~/utils/homeTrainingOpticalR5';
 import {
   deriveFigmaTextPaintWindow, ZERO_FIGMA_TEXT_GROWTH,
   type FigmaTextPaintGrowth,
@@ -11,26 +12,30 @@ import {
 
 const props = defineProps<{nodeKey:string; width:number;height:number}>();
 const original = computed(() => figmaScene.texts[props.nodeKey]);
+const trainingPaintWidth = computed(() => homeTrainingR5PaintWidth(props.nodeKey, props.width));
 const visual = computed(() => r3MethodsTextOverride(props.nodeKey));
 // Explicit presentation layer; original UTF-16 runs, digests and Scene geometry stay immutable.
-const visibleRuns = computed(() => presentHomeSpecialPointRuns(props.nodeKey,
+const visibleRuns = computed(() => {
+  assertHomeTrainingR5TextSource(props.nodeKey, original.value);
+  return presentHomeSpecialPointRuns(props.nodeKey,
   (original.value?.runs ?? []).map(run => {
     const sized = visual.value ? {...run,style:{...run.style,
       fontSize:`${visual.value.fontSize}px`,letterSpacing:`${visual.value.letterSpacing}px`}} : run;
     const displayed = homeVisibleFilmText(props.nodeKey, homeVisibleBrandText(props.nodeKey, run.characters));
     return displayed === run.characters ? sized : {...sized, characters: displayed};
   }),
-));
+  );
+});
 const growth = ref<FigmaTextPaintGrowth>(ZERO_FIGMA_TEXT_GROWTH);
 const paint = computed(() => deriveFigmaTextPaintWindow(
-  props.width, props.height, visibleRuns.value, growth.value,
+  trainingPaintWidth.value, props.height, visibleRuns.value, growth.value,
 ));
 const foreign = ref<SVGForeignObjectElement | null>(null);
 const runsRoot = ref<HTMLDivElement | null>(null);
 const inkGate = ref<'UNMEASURED' | 'PASS' | 'WINDOW_EXCEEDED'>('UNMEASURED');
 const fontGate = ref<'UNMEASURED' | 'PRETENDARD_LOADED' | 'PRETENDARD_MISSING'>('UNMEASURED');
 const paintStyle = computed(() => ({
-  width: `${props.width}px`, height: `${props.height}px`, margin: 0, padding: 0,
+  width: `${trainingPaintWidth.value}px`, height: `${props.height}px`, margin: 0, padding: 0,
   position: 'relative' as const, left: `${paint.value.contentX}px`, top: `${paint.value.contentY}px`,
   display: 'flex', flexDirection: 'column' as const,
   alignItems: original.value?.layout.alignHorizontal === 'CENTER' ? 'center' :
@@ -122,6 +127,7 @@ onUnmounted(() => {
     :data-source-rect="`${props.width}x${props.height}`"
     :data-paint-window="`${paint.x},${paint.y},${paint.width},${paint.height}`"
     :data-ink-gate="inkGate" :data-font-gate="fontGate"
+    :data-training-r5-paint-width="nodeKey === HOME_TRAINING_R5_FIELD_NODE ? trainingPaintWidth : undefined"
     :data-user-visual-override="visual ? 'USER_REQUESTED_METHODS_TEXT_SCALE_R3' : undefined"
     :data-display-font-size="visual?.fontSize">
     <div xmlns="http://www.w3.org/1999/xhtml" :style="paintStyle" class="smd-figma-native-text">

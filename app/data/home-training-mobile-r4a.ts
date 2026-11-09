@@ -7,8 +7,8 @@ export const mobileTrainingR4A = {
   fieldLabelSource: 'node-1:479',
   fieldValueSource: 'node-1:478',
   fieldSourceText: '인테리어· 유리 필름',
-  fieldDisplayText: '인테리어·유리필름',
-  fieldDisplayFirst: '인테리어·',
+  fieldDisplayText: '인테리어필름 · 유리필름',
+  fieldDisplayFirst: '인테리어필름 · ',
   fieldDisplaySecond: '유리필름',
   timeline: {
     morningLabel: mobileTrainingR2.timeline.morningLabel,
@@ -31,7 +31,7 @@ export function assertMobileTrainingR4A(): void {
   if (homeFigmaText[v.fieldLabelSource]?.characters !== '교육분야' ||
       homeFigmaText[v.fieldValueSource]?.characters !== v.fieldSourceText ||
       v.fieldDisplayFirst + v.fieldDisplaySecond !== v.fieldDisplayText ||
-      v.fieldDisplayText !== '인테리어·유리필름' ||
+      v.fieldDisplayText !== '인테리어필름 · 유리필름' ||
       v.timeline.afternoonDisplayText !== '필름래핑' ||
       v.timeline.afternoonSourceText !== '필름 래핑' ||
       refs.some((key,index) => homeFigmaText[key]?.characters !== expected[index]) ||

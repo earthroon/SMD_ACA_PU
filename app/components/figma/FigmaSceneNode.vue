@@ -13,6 +13,7 @@ import {specialItemIndex} from '~/utils/homeSpecialTimeline';
 import {trainingItemIndex, isTrainingDiagramNode} from '~/utils/homeTrainingTimeline';
 import {benefitsItemIndex} from '~/utils/homeBenefitsTimeline';
 import {isMethodsTitle, methodsCardIndex, methodsTextIndex} from '~/utils/homeMethodsTimeline';
+import {homeTrainingR5Optical} from '~/utils/homeTrainingOpticalR5';
 defineOptions({name:'FigmaSceneNode'});
 const props=defineProps<{nodeKey:string;mode?:'full'|'decorative'}>();
 const node=computed(()=>figmaScene.nodes[props.nodeKey]);
@@ -129,6 +130,14 @@ const image=computed(()=>{
         </g>
         <g v-else-if="methodsTextIndex(child) !== null" class="smd-home-methods__text"
           :data-methods-text-index="methodsTextIndex(child)" :data-methods-text-source="child">
+          <FigmaSceneNode :node-key="child" :mode="mode" />
+        </g>
+        <!-- HOME_TRAINING_R5: visual offset on a NEW child wrapper, never on Reveal target. -->
+        <g v-else-if="homeTrainingR5Optical(child)" class="smd-home-training__optical"
+          :data-training-optical-node="child"
+          :data-training-optical-dx="homeTrainingR5Optical(child)?.dx"
+          :data-training-optical-dy="homeTrainingR5Optical(child)?.dy"
+          :transform="`translate(${homeTrainingR5Optical(child)?.dx ?? 0} ${homeTrainingR5Optical(child)?.dy ?? 0})`">
           <FigmaSceneNode :node-key="child" :mode="mode" />
         </g>
         <FigmaSceneNode v-else :node-key="child" :mode="mode" />
