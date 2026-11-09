@@ -29,7 +29,7 @@ const iconByLabel={
                 <template v-if="fact.label === mobileTrainingR4A.fieldLabelSource">
                   <span class="smd-training-field-mobile-r4a" :data-figma-text="fact.value"
                     :data-text-digest="homeFigmaText[mobileTrainingR4A.fieldValueSource].textDigest"
-                    :data-user-display-override="mobileTrainingR4A.authority">인테리어·<wbr /><span class="smd-training-nobreak-r4a">유리필름</span></span>
+                    :data-user-display-override="mobileTrainingR4A.authority">{{ mobileTrainingR4A.fieldDisplayFirst }}<wbr /><span class="smd-training-nobreak-r4a">{{ mobileTrainingR4A.fieldDisplaySecond }}</span></span>
                   <span class="smd-training-field-original-r4a"><HomeFigmaText :text-key="fact.value" /></span>
                 </template>
                 <HomeFigmaText v-else :text-key="fact.value" />
