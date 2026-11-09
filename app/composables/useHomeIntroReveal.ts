@@ -65,13 +65,14 @@ export function useHomeIntroReveal(
     admitted.value=false;
     visualState.value=finish?'managed':'pending';
   }
-  function start(now:number,source:IntroIntent):void {
-    if (phase.value!=='idle'||!geometryReady.value||!isVisible()) return;
+  function start(now:number,source:IntroIntent):boolean {
+    if (phase.value!=='idle'||!geometryReady.value||!isVisible()) return false;
     startedAt=now;lastWheelAt=now;
     animationStarts.value+=1;firstIntent.value=source;
     phase.value='revealing';visualState.value='managed';
     draw(0);
     rafId=requestAnimationFrame(tick);
+    return true;
   }
   function tick(now:number):void {
     rafId=null;
@@ -85,6 +86,12 @@ export function useHomeIntroReveal(
       return;
     }
     rafId=requestAnimationFrame(tick);
+  }
+  /** Preserve exactly one genuine loading-time scroll intent after media admission. */
+  function requestBufferedIntent(source:IntroIntent):boolean {
+    if(!mounted||phase.value!=='idle'||!geometryReady.value||!isVisible()||window.scrollY>2)return false;
+    if(source==='wheel'&&!finePointer?.matches)return false;
+    return start(performance.now(),source);
   }
   function onWheel(event:WheelEvent):void {
     if(!admitted.value||event.ctrlKey||!isVisible())return;
@@ -198,5 +205,5 @@ export function useHomeIntroReveal(
     reduced?.removeEventListener('change',onEnvironment);
   });
   return {phase,admitted,admissionReason,releaseReason,ignoredWheelEvents,animationStarts,
-    visualState,firstIntent,presentation,route};
+    visualState,firstIntent,presentation,route,requestBufferedIntent};
 }

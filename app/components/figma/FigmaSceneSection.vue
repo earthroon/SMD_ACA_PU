@@ -8,7 +8,11 @@ import {useHomeR2Published} from '~/composables/useHomeR2Published';
 import FigmaSceneNode from './FigmaSceneNode.vue';
 import { homeInfoLayout } from '~/utils/homeInfoLayout';
 import type { FilmPaintGeometry } from '~/utils/homeIntroOverlayGeometry';
-const emit = defineEmits<{ 'film-paint-geometry': [geometry: FilmPaintGeometry] }>();
+import type { HeroMediaStatus } from '~/utils/homeIntroMediaGate';
+const emit = defineEmits<{
+  'film-paint-geometry': [geometry: FilmPaintGeometry];
+  'film-media-status': [status: HeroMediaStatus];
+}>();
 const props=defineProps<{sectionId:string; mode?:'full'|'decorative'; paintHeightCssPx?:number|null}>();
 const section=computed(()=>figmaScene.sections.find(s=>s.id===props.sectionId));
 const root=computed(()=>section.value?.nodeKey??'');
@@ -30,7 +34,8 @@ const nodeRect=(k:string)=>figmaScene.nodes[k]?.rect??[0,0,0,0];
     :data-home-section="sectionId" :data-figma-section="root" :data-scene-mode="mode??'full'"
     :style="sectionId==='hero' && paintHeightCssPx!=null ? {height:`${paintHeightCssPx}px`} : undefined">
     <HomeHeroFilm v-if="sectionId === 'hero' && mode !== 'decorative'" :paint-height-css-px="paintHeightCssPx"
-      @film-paint-geometry="emit('film-paint-geometry', $event)" />
+      @film-paint-geometry="emit('film-paint-geometry', $event)"
+      @film-media-status="emit('film-media-status', $event)" />
     <svg xmlns="http://www.w3.org/2000/svg" class="smd-figma-scene-svg" :viewBox="viewBox"
       preserveAspectRatio="xMidYMin meet" role="group" :aria-label="`Figma 원본 ${sectionId} 섹션 시각 레이어`">
       <g :transform="`translate(0 ${-section.top})`">

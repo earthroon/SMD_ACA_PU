@@ -1,6 +1,22 @@
 /* SMD_HOME_INTRO_VUE_PAINT_STACK_R3: Vue owns geometry and the reveal timeline.
    CSS owns only paint stacking and the original item presentation primitives. */
 .smd-home-intro { position:relative; }
+/* Initial hydration/decoding gate: opacity never removes layout measurement boxes. */
+html[data-smd-intro-load-lock-owner] { overflow:hidden !important; scrollbar-gutter:stable; }
+.smd-home-intro { background:#fff; }
+.smd-home-intro__paint-stack { transition:opacity 220ms ease-out; }
+.smd-home-intro:not([data-intro-load-state="ready"]) .smd-home-intro__paint-stack {
+ opacity:0;pointer-events:none;
+}
+.smd-home-intro__load-fault {
+ position:absolute;z-index:10;left:50%;top:clamp(110px,20vh,240px);
+ transform:translateX(-50%);width:min(92%,560px);padding:18px 22px;
+ background:#fff;color:#8a2424;border:1px solid #d8aaaa;
+ font:500 15px/1.55 var(--font-ui),sans-serif;text-align:center;
+}
+@media (prefers-reduced-motion:reduce){
+ .smd-home-intro__paint-stack{transition:none;}
+}
 /* Vue calculates the actual paint height; svh is SSR-only before viewport measurement. */
 .smd-home-intro__paint-stack { position:relative; isolation:isolate; width:100%;
  height:calc(100svh - var(--smd-header-height)); }
