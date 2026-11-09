@@ -3,6 +3,8 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, useId, watch } fro
 import useEmblaCarousel from 'embla-carousel-vue';
 import Autoplay from 'embla-carousel-autoplay';
 import { useStandalonePublishedMedia } from '~/composables/useStandalonePublishedMedia';
+import { useContentMode } from '~/composables/useContentMode';
+import { resolveHomeHeroLocalMedia } from '~/utils/homeHeroLocalMedia';
 import type { HeroMediaStatus } from '~/utils/homeIntroMediaGate';
 import {
   HERO_CAROUSEL_DELAY_MS, HERO_CAROUSEL_REVISION, resolveHeroCarouselSlots,
@@ -11,7 +13,22 @@ import {
 
 const emit = defineEmits<{ 'media-status': [status: HeroMediaStatus] }>();
 const media = useStandalonePublishedMedia();
-const slides = computed(() => resolveHeroCarouselSlots(id => media.image('home', id)));
+const contentMode = useContentMode();
+const slides = computed(() => resolveHeroCarouselSlots(id => {
+  const binding = media.image('home', id);
+  switch (binding.kind) {
+    case 'local':
+      switch (contentMode) {
+        case 'standalone': {
+          const local = resolveHomeHeroLocalMedia(id);
+          return {kind: 'local' as const, ...local};
+        }
+        case 'cms': return binding; // CMS Hero schema is not yet part of HomeR2PublicProjection.
+      }
+      throw new Error('SMD_HOME_HERO_CONTENT_MODE_UNSUPPORTED');
+    case 'published':case 'unbound': return binding;
+  }
+}));
 const sourceRevision = computed(() => slides.value.map(s =>
   `${s.slotId}:${s.src}:${s.width}x${s.height}:${s.publicationId ?? 'local'}:${s.assetId ?? 'local'}`,
 ).join('|'));
