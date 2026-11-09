@@ -10,7 +10,7 @@
     "test:source": "node --experimental-strip-types --test scripts/tests/r3-public-boundary.test.mjs",
     "test:boundary": "node --experimental-strip-types --test scripts/tests/r3-public-boundary.test.mjs",
     "verify:contracts": "node scripts/verify-contract-artifact.mjs",
-    "deploy:staging": "npm run build && wrangler deploy --env staging",
+    "deploy:staging": "npm run build && wrangler deploy --config wrangler.staging.toml",
     "verify:about": "node --experimental-strip-types scripts/about-r1/verify-source.mjs",
     "test:about": "node --experimental-strip-types --test scripts/about-r1/tests/*.test.mjs",
     "verify:curriculum": "node --experimental-strip-types scripts/curriculum-r1/verify-source.mjs",
