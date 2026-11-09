@@ -8,8 +8,17 @@ workers_dev = true
 directory = ".output/public"
 binding = "ASSETS"
 
+# Standalone media-only service binding; routing and content mode remain unchanged.
+[[services]]
+binding = "SMD_CORE"
+service = "smd-core"
+entrypoint = "PublicSurface"
+
 [vars]
 NUXT_PUBLIC_CONTENT_MODE = "standalone"
+# CF8 gate stays local until Source Lock + staging publication are verified.
+NUXT_PUBLIC_STANDALONE_MEDIA_MODE = "local"
+NUXT_PUBLIC_STANDALONE_MEDIA_SOURCE_LOCK_DIGEST = ""
 
 [observability]
 enabled = true

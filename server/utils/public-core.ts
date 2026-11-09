@@ -1,9 +1,11 @@
 import type { H3Event } from 'h3';
 /** PublicSurface is an explicit capability, not an unrestricted Core proxy. */
 type PublicBinding = { fetch(request: Request): Promise<Response> };
+/** Standalone media must be scoped to an active publication, never a bare asset ID. */
+const standaloneMediaCorePath=/^\/v1\/standalone\/media\/[0-9a-f-]{36}\/sm_[a-f0-9]{64}$/;
 const publicPaths:Readonly<Record<string,readonly RegExp[]>>={
-  GET:[/^\/v6\/render$/, /^\/v6\/media\/home-r2\/sm_[a-f0-9]{64}$/, /^\/v5\/render$/, /^\/v5\/media\/image\/sm_[a-f0-9]{64}$/, /^\/v5\/media\/brand\/sb_[a-f0-9]{64}$/, /^\/v5\/brand\/current$/, /^\/v4\/render$/, /^\/v4\/archive\/media\/[a-f0-9]{64}\.(?:png|webp|jpe?g)$/, /^\/v3\/render$/, /^\/v3\/sitemap$/, /^\/v1\/content$/, /^\/v2\/content$/],
-  HEAD:[/^\/v6\/media\/home-r2\/sm_[a-f0-9]{64}$/, /^\/v5\/media\/image\/sm_[a-f0-9]{64}$/, /^\/v5\/media\/brand\/sb_[a-f0-9]{64}$/],
+  GET:[/^\/v1\/standalone\/media\/manifest$/, standaloneMediaCorePath, /^\/v6\/render$/, /^\/v6\/media\/home-r2\/sm_[a-f0-9]{64}$/, /^\/v5\/render$/, /^\/v5\/media\/image\/sm_[a-f0-9]{64}$/, /^\/v5\/media\/brand\/sb_[a-f0-9]{64}$/, /^\/v5\/brand\/current$/, /^\/v4\/render$/, /^\/v4\/archive\/media\/[a-f0-9]{64}\.(?:png|webp|jpe?g)$/, /^\/v3\/render$/, /^\/v3\/sitemap$/, /^\/v1\/content$/, /^\/v2\/content$/],
+  HEAD:[standaloneMediaCorePath, /^\/v6\/media\/home-r2\/sm_[a-f0-9]{64}$/, /^\/v5\/media\/image\/sm_[a-f0-9]{64}$/, /^\/v5\/media\/brand\/sb_[a-f0-9]{64}$/],
   POST:[/^\/v1\/bot\/ask$/, /^\/v1\/inquiries$/, /^\/v1\/hooks\/ask$/]
 };
 function binding(event:H3Event):PublicBinding {
@@ -77,7 +79,8 @@ export async function coreResponse(event:H3Event,path:string):Promise<Response>{
 
 /** SiteMedia bytes: exact allowlisted GET/HEAD, never JSON, never Admin credentials. */
 export async function coreMediaResponse(event:H3Event,path:string,method:'GET'|'HEAD'):Promise<Response>{
-  if(!(/^\/v6\/media\/home-r2\/sm_[a-f0-9]{64}$/.test(path)||
+  if(!(standaloneMediaCorePath.test(path)||
+      /^\/v6\/media\/home-r2\/sm_[a-f0-9]{64}$/.test(path)||
       /^\/v5\/media\/image\/sm_[a-f0-9]{64}$/.test(path)||
       /^\/v5\/media\/brand\/sb_[a-f0-9]{64}$/.test(path)))
     throw createError({statusCode:403,statusMessage:'PUBLIC_MEDIA_ROUTE_NOT_ADMITTED'});

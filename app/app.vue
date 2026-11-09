@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { useContentMode } from '~/composables/useContentMode';
+import {useStandaloneMediaState} from '~/composables/useStandalonePublishedMedia';
+import {validateStandaloneMediaManifest} from '~/utils/standalone-media-public';
 import { useSiteContent } from '~/composables/useSiteContent';
 import { useHomeR2Published } from '~/composables/useHomeR2Published';
 import { useSelectedCategoryPage, type SelectedPublicPageState } from '~/composables/useSelectedCategoryPage';
@@ -20,6 +22,44 @@ const isStatic = computed(() => route.path === '/privacy');
 const content = useSiteContent();
 const homePublished = useHomeR2Published();
 const selected = useSelectedCategoryPage();
+const mediaMode = String(useRuntimeConfig().public.standaloneMediaMode ?? 'local');
+const mediaSourceLockDigest = String(useRuntimeConfig().public.standaloneMediaSourceLockDigest ?? '');
+const mediaActive = standalone && mediaMode === 'published';
+const mediaShared = useStandaloneMediaState();
+const {data: mediaEnvelope, error: mediaError, refresh: refreshStandaloneMedia} = await useAsyncData(
+  'smd-standalone-media-manifest-v1', async (_app,{signal}) => {
+    if (!mediaActive) return {kind:'local' as const};
+    if (!/^[a-f0-9]{64}$/.test(mediaSourceLockDigest))
+      throw createError({statusCode:503,statusMessage:'STANDALONE_SOURCE_LOCK_NOT_PINNED'});
+    const target='/api/media/standalone/manifest';
+    const response=import.meta.server
+      ? await requestEvent?.fetch(target,{signal,redirect:'manual'})
+      : await fetch(target,{signal,redirect:'manual'});
+    if (!response || response.status!==200)
+      throw createError({statusCode:503,statusMessage:'STANDALONE_MEDIA_MANIFEST_UNAVAILABLE'});
+    let raw:unknown;
+    try{raw=await response.json();}catch{throw createError({statusCode:503,statusMessage:'STANDALONE_MEDIA_MANIFEST_INVALID'});}
+    return {kind:'published' as const,manifest:validateStandaloneMediaManifest(raw,mediaSourceLockDigest)};
+  },{dedupe:'cancel'});
+watch(mediaEnvelope,entry=>{
+  mediaShared.value=entry?.kind==='published'?entry.manifest:null;
+},{immediate:true,flush:'sync'});
+const mediaRefreshing=ref(false);
+if (import.meta.client && mediaActive) {
+  watch(()=>route.fullPath,()=>{
+    mediaRefreshing.value=true;
+    void refreshStandaloneMedia().finally(()=>{mediaRefreshing.value=false;});
+  });
+  watch(mediaError,failure=>{
+    if(failure)showError(createError({statusCode:503,statusMessage:'STANDALONE_MEDIA_MANIFEST_FAILED'}));
+  });
+}
+if(mediaActive && mediaError.value)
+  throw createError({statusCode:503,statusMessage:'STANDALONE_MEDIA_MANIFEST_FAILED'});
+const mediaCurrent=computed(()=>!mediaActive || (mediaEnvelope.value?.kind==='published' &&
+  mediaShared.value?.publication.id===mediaEnvelope.value.manifest.publication.id &&
+  !mediaError.value && !mediaRefreshing.value));
+
 const requestKey = computed(() => {
   switch (true) {
     case isStatic.value: return `smd-static:${route.path}`;
@@ -232,7 +272,7 @@ useSeoMeta({ robots: () => standalone && current.value &&
 </script>
 <template>
   <NuxtLayout>
-    <NuxtPage v-if="current" />
+    <NuxtPage v-if="current && mediaCurrent" />
     <section v-else class="container-x min-h-screen pt-40 pb-20" role="status">
       <h1 class="font-heading text-2xl">{{ standalone ? '이 페이지는 연결 준비 중입니다.' : pending ? '콘텐츠를 불러오는 중입니다.' : '콘텐츠를 불러오지 못했습니다.' }}</h1>
       <p v-if="!pending && !standalone" class="mt-4 text-foreground-600">{{ error?.statusMessage || '공개 콘텐츠의 발행 상태를 확인해 주세요.' }}</p>

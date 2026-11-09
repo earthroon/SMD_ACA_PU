@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted, onBeforeUnmount, type PropType } from 'vue';
 import { homeFilmAssets, homeFilmEditorialAdmissions, homeFilmEditorialReady } from '~/data/home-film';
+import {useStandalonePublishedMedia} from '~/composables/useStandalonePublishedMedia';
 import { filmHorizontal } from '~/utils/homeFilmInput';
 import {
   filmImageAtPoint, initialFilmSelection, reduceFilmSelection,
@@ -53,6 +54,15 @@ const slotStyle=(index:number)=>{
 const hovered=ref(false),copies=ref(8),hoveredSlotIndex=ref<number|null>(null);
 const transport=ref<FilmHorizontalTransport>({kind:'static',generation:0,reason:'hidden'});
 const displayAssets=computed(()=>Array.from({length:copies.value},()=>homeFilmAssets).flat());
+const publishedMedia=useStandalonePublishedMedia();
+const filmSrc=(asset:typeof homeFilmAssets[number]):string=>{
+  const result=publishedMedia.image('home',asset.id);
+  switch(result.kind){
+    case 'local':return asset.src;
+    case 'published':return result.src;
+    case 'unbound':throw new Error('STANDALONE_FILM_IMAGE_NOT_PUBLISHED');
+  }
+};
 const selection=useState('smd-home-film-selection-r13',initialFilmSelection);
 const activeImageId=computed<FilmImageId|null>(()=>{
  switch(selection.value.kind){
@@ -791,7 +801,7 @@ onBeforeUnmount(()=>{
        'is-selected':selection.kind==='committed'&&selection.imageId===asset.id}"
       :data-film-image-id="asset.id" :data-film-copy-index="Math.floor(index/homeFilmAssets.length)"
       aria-hidden="true" inert>
-     <img :src="asset.src" alt="" :width="asset.width" :height="asset.height" decoding="async" draggable="false" />
+     <img :src="filmSrc(asset)" alt="" :width="asset.width" :height="asset.height" decoding="async" draggable="false" />
      <span class="smd-hero-film__focus-layer" aria-hidden="true" />
     </figure>
     <canvas ref="focusCanvas" :key="focusCanvasEpoch" class="smd-hero-film__gpu-overlay"
@@ -805,7 +815,7 @@ onBeforeUnmount(()=>{
      :class="{'is-current':isCurrent(item.asset.id),'is-approved':item.source.kind==='approved'}"
      :data-film-semantic-id="item.asset.id">
     <figure class="smd-hero-film__original">
-     <img class="smd-hero-film__semantic-image" :src="item.asset.src" :alt="item.asset.alt"
+     <img class="smd-hero-film__semantic-image" :src="filmSrc(item.asset)" :alt="item.asset.alt"
        :width="item.asset.width" :height="item.asset.height" loading="lazy" />
      <figcaption v-if="item.source.kind==='approved'" class="smd-hero-film__caption">
       <strong class="smd-hero-film__title">{{item.source.title}}</strong>
