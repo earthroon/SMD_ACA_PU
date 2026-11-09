@@ -3,6 +3,7 @@ import {figmaScene} from '~/data/figma-r2-scene.generated';
 import {homeMediaSlots, type HomeMediaSlotId} from '~/data/home-r2-manifest';
 import {useHomeR2Published} from '~/composables/useHomeR2Published';
 import {useSiteContent} from '~/composables/useSiteContent';
+import {useStandalonePublishedMedia} from '~/composables/useStandalonePublishedMedia';
 import {resolveHomeR2PublicImage} from '~/utils/home-r2-v6-public';
 import FigmaSvgAsset from './FigmaSvgAsset.vue';
 import FigmaNativeText from './FigmaNativeText.vue';
@@ -56,8 +57,16 @@ const solidFill=computed(()=>{
 const imageOwnerMap=Object.fromEntries(Object.entries(homeMediaSlots).map(([id,v])=>[v.sourceNodeKey,id]));
 const mediaSlot=computed(()=>imageOwnerMap[props.nodeKey] as HomeMediaSlotId|undefined);
 const published=useHomeR2Published();const content=useSiteContent();const route=useRoute();
+const standaloneMedia=useStandalonePublishedMedia();
 const image=computed(()=>{
- if(mode.value!=='full'||!mediaSlot.value||route.path!=='/'||!published.value||!content.value)return null;
+  if(mode.value!=='full'||!mediaSlot.value||route.path!=='/')return null;
+  const standalone=standaloneMedia.image('home',mediaSlot.value);
+  switch(standalone.kind){
+    case 'published':return standalone;
+    case 'unbound':return null;
+    case 'local':break;
+  }
+  if(!published.value||!content.value)return null;
  return resolveHomeR2PublicImage(published.value,content.value.publication,mediaSlot.value);
 });
 </script>

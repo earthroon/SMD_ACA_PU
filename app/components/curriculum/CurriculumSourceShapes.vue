@@ -5,7 +5,12 @@ import { curriculumSection,roundedSourcePath } from '~/utils/curriculumR1LayoutM
 import type { CurriculumSectionId } from '~/data/curriculum-r1-types';
 const props=defineProps<{sectionId:CurriculumSectionId}>();
 const section=computed(()=>curriculumSection(props.sectionId));
-const shapes=computed(()=>Object.values(curriculumSourceShapes).filter(s=>s.sectionId===props.sectionId));
+// Only the six navigation-card source paints move to CSS selection ownership.
+// Shape records, unrelated panels (399/413), and source digests remain frozen.
+const weekCardPaintIds=new Set([72,73,74,75,76,388]);
+const shapes=computed(()=>Object.values(curriculumSourceShapes).filter(s=>
+  s.sectionId===props.sectionId &&
+  !(props.sectionId==='six-week-program' && weekCardPaintIds.has(s.sourceLayerId))));
 </script>
 <template><svg class="smd-curriculum__source-shapes" :viewBox="'0 '+section.top+' 1920 '+section.height"
   preserveAspectRatio="none" aria-hidden="true" focusable="false">

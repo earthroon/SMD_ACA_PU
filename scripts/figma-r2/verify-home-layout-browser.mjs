@@ -69,6 +69,15 @@ async function measure(){
       source:e.getAttribute('data-home-info-source'),scale:Number(e.getAttribute('data-home-info-scale')),
       kind:e.getAttribute('data-home-info-kind'),box:box(e)}));
     const show=e=>e?getComputedStyle(e).display:null;
+    const icon=e=>{const r=e?.getBoundingClientRect();return r?{cx:r.x+r.width/2,cy:r.y+r.height/2}:null};
+    const iconMap=Object.fromEntries([...document.querySelectorAll(
+      '.smd-home-intro .smd-home-info-layout__item[data-home-info-kind="icon"]')].map(e=>
+      [e.getAttribute('data-home-info-source'),icon(e)]));
+    const run=document.querySelector('.smd-home-intro foreignObject[data-figma-text-instance="node-18:59"] .smd-figma-native-text__runs span');
+    let valueInk=null;
+    if(run){const range=document.createRange();range.selectNodeContents(run);const r=range.getBoundingClientRect();
+      valueInk={cx:r.x+r.width/2,width:r.width};range.detach();}
+    const optical={icons:iconMap,valueInk};
     return {viewport:[innerWidth,innerHeight],horizontalOverflow:document.documentElement.scrollWidth-innerWidth,
       info:box(document.querySelector('.smd-home-intro .smd-figma-scene-section--info-bar')),
       infoSvg:box(document.querySelector('.smd-home-intro .smd-figma-scene-section--info-bar svg')),
@@ -77,7 +86,7 @@ async function measure(){
       body:box(document.querySelector('.smd-home-body-stage')),
       sceneDisplay:show(document.querySelector('.smd-home--figma-scene')),
       reflowDisplay:show(document.querySelector('.smd-home--semantic-reflow')),
-      icons:iconNodes,rows:parts};
+      icons:iconNodes,rows:parts,optical};
   })()`);
 }
 const results=[];let failure=null;
@@ -124,6 +133,16 @@ try{
       if(observed.icons.length!==8)errors.push(`INFO_LAYOUT_NODE_COUNT_${observed.icons.length}`);
       if(observed.icons.filter(v=>v.kind==='icon'&&Math.abs(v.scale-.7)<1e-7).length!==4)errors.push('ICON_SCALE');
       if(observed.icons.filter(v=>v.kind==='text'&&Math.abs(v.scale-.9)<1e-7).length!==4)errors.push('TEXT_SCALE');
+      const ink=observed.optical;
+      const helmet=ink?.icons?.['node-1:395'],clock=ink?.icons?.['node-1:320'],
+        tools=ink?.icons?.['node-1:411'],file=ink?.icons?.['node-18:26'];
+      if(!helmet||!clock||!tools||!file||!ink?.valueInk)errors.push('OPTICAL_INK_NOT_OBSERVED');
+      else {
+        // Optical thresholds are proposal gates until Windows physical qualification.
+        const iconMedian=[clock.cy,tools.cy,file.cy].sort((a,b)=>a-b)[1];
+        if(Math.abs(helmet.cy-iconMedian)>15)errors.push('HELMET_Y_OPTICAL_DRIFT');
+        if(Math.abs(file.cx-ink.valueInk.cx)>7)errors.push('FILE_TEXT_X_OPTICAL_DRIFT');
+      }
     }
     results.push({width,height,touch,errors,observed});
     console.log(`SMD_LAYOUT_R1 ${width}x${height} ${touch?'TOUCH':'DESKTOP'} ${errors.length?'FAIL '+errors.join(','):'BROWSER_OK'}`);

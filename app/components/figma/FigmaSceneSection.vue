@@ -1,20 +1,25 @@
 <script setup lang="ts">
+import HomeHeroFilm from '~/components/home/HomeHeroFilm.vue';
 import FigmaR4UserFileIcon from './FigmaR4UserFileIcon.vue';
 import {figmaScene} from '~/data/figma-r2-scene.generated';
 import {useSiteContent} from '~/composables/useSiteContent';
+import { usePublicConsultationHref } from '~/composables/usePublicConsultationHref';
 import {useHomeR2Published} from '~/composables/useHomeR2Published';
 import FigmaSceneNode from './FigmaSceneNode.vue';
 import { homeInfoLayout } from '~/utils/homeInfoLayout';
-const props=defineProps<{sectionId:string; mode?:'full'|'decorative'}>();
+import type { FilmPaintGeometry } from '~/utils/homeIntroOverlayGeometry';
+import type { HeroMediaStatus } from '~/utils/homeIntroMediaGate';
+const emit = defineEmits<{
+  'film-paint-geometry': [geometry: FilmPaintGeometry];
+  'film-media-status': [status: HeroMediaStatus];
+}>();
+const props=defineProps<{sectionId:string; mode?:'full'|'decorative'; paintHeightCssPx?:number|null}>();
 const section=computed(()=>figmaScene.sections.find(s=>s.id===props.sectionId));
 const root=computed(()=>section.value?.nodeKey??'');
 const sceneHeight=computed(()=>props.sectionId==='info-bar'?homeInfoLayout.barHeight:section.value?.height??1);
 const viewBox=computed(()=>`0 0 1920 ${sceneHeight.value}`);
 const content=useSiteContent(); const published=useHomeR2Published();
-const ctaHref=computed(()=>{
- const v=content.value?.navigation.kakaoUrl;
- return typeof v==='string'&&/^https:\/\/[^\s/]+(?:\/[^\s]*)?$/.test(v)?v:null;
-});
+const ctaHref = usePublicConsultationHref();
 const faq=computed(()=>{
  if(!published.value||!content.value||published.value.publicationId!==content.value.publication.id||
    published.value.publicationDigest!==content.value.publication.digest)return [];
@@ -26,7 +31,11 @@ const nodeRect=(k:string)=>figmaScene.nodes[k]?.rect??[0,0,0,0];
 </script>
 <template>
   <section v-if="section" class="smd-figma-scene-section" :class="`smd-figma-scene-section--${sectionId}`"
-    :data-home-section="sectionId" :data-figma-section="root" :data-scene-mode="mode??'full'">
+    :data-home-section="sectionId" :data-figma-section="root" :data-scene-mode="mode??'full'"
+    :style="sectionId==='hero' && paintHeightCssPx!=null ? {height:`${paintHeightCssPx}px`} : undefined">
+    <HomeHeroFilm v-if="sectionId === 'hero' && mode !== 'decorative'" :paint-height-css-px="paintHeightCssPx"
+      @film-paint-geometry="emit('film-paint-geometry', $event)"
+      @film-media-status="emit('film-media-status', $event)" />
     <svg xmlns="http://www.w3.org/2000/svg" class="smd-figma-scene-svg" :viewBox="viewBox"
       preserveAspectRatio="xMidYMin meet" role="group" :aria-label="`Figma 원본 ${sectionId} 섹션 시각 레이어`">
       <g :transform="`translate(0 ${-section.top})`">

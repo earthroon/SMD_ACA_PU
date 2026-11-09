@@ -1,11 +1,20 @@
 <script setup lang="ts">
 import { computed,ref,watch } from 'vue';
+import {useStandalonePublishedMedia} from '~/composables/useStandalonePublishedMedia';
 import { curriculumSourceAssets } from '~/data/curriculum-r1-assets.generated';
 import { curriculumMediaCss,curriculumFrameStyle } from '~/utils/curriculumR1LayoutMath';
 import type { CurriculumPhotoId } from '~/data/curriculum-r1-types';
 const props=defineProps<{slotId:CurriculumPhotoId}>();
 const photo=computed(()=>curriculumSourceAssets.photos[props.slotId]);
-const src=computed(()=>'/curriculum/'+encodeURIComponent(photo.value.fileName)+'?v='+photo.value.sha256);
+const publishedMedia=useStandalonePublishedMedia();
+const src=computed(()=>{
+  const result=publishedMedia.image('curriculum',props.slotId);
+  switch(result.kind){
+    case 'local':return '/curriculum/'+encodeURIComponent(photo.value.fileName)+'?v='+photo.value.sha256;
+    case 'published':return result.src;
+    case 'unbound':throw new Error('STANDALONE_CURRICULUM_MEDIA_NOT_PUBLISHED');
+  }
+});
 const geometry=computed(()=>curriculumMediaCss(photo.value));
 const state=ref<'pending'|'loaded'|'failed'>('pending');
 watch(src,()=>{state.value='pending';});

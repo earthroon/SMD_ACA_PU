@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {useSiteContent} from '~/composables/useSiteContent';
+import { publicExternalActionsAllowed } from '~/utils/publicExternalActionPolicy';
 import TurnstileWidget from './TurnstileWidget.vue';
 const config=useRuntimeConfig();
 const sitekey=String(config.public.turnstileSiteKey||'');
@@ -13,10 +14,12 @@ const inputClass='w-full rounded-md border border-background-300 bg-background-5
 const labelClass='mb-2 block font-label text-xs uppercase tracking-[0.16em] text-foreground-600';
 const c=useSiteContent();
 const pages=computed(()=>c.value?.pages);
+const submissionAllowed=computed(()=>publicExternalActionsAllowed(c.value));
 const courses=computed(()=>c.value?.promotion.courseOptions??[]);
 const labels=computed(()=>new Map(pages.value?.form.courseLabels.map(item=>[item.value,item.label])??[]));
 async function submit(){
   if(status.value==='submitting')return;
+  if(!submissionAllowed.value){status.value='error';formError.value='상담 접수 운영 승인 전입니다.';return;}
   if(!sitekey || !token.value){status.value='error';formError.value='자동입력 방지 인증을 완료해 주세요.';return;}
   if(!consent.value){status.value='error';formError.value='상담 목적의 개인정보 수집 동의가 필요합니다.';return;}
   status.value='submitting';formError.value='';
@@ -47,10 +50,10 @@ async function submit(){
     <div class="mt-5"><label for="cf-course" :class="labelClass">{{ pages?.form.course.label }}</label><select id="cf-course" v-model="form.course" name="course" required :class="inputClass"><option value="" disabled>{{ pages?.form.course.placeholder }}</option><option v-for="course in courses" :key="course" :value="course">{{ labels.get(course)??course }}</option></select></div>
     <div class="mt-5"><label for="cf-message" :class="labelClass">{{ pages?.form.message.label }}</label><textarea id="cf-message" v-model.trim="form.message" name="message" rows="5" maxlength="500" required :placeholder="pages?.form.message.placeholder" :class="[inputClass,'resize-none']" /><div class="mt-1.5 text-right text-xs text-foreground-500">{{ form.message.length }} / 500</div></div>
     <input v-model="form.website_alt" name="website_alt" type="text" tabindex="-1" autocomplete="off" aria-hidden="true" class="form-hp-field" />
-    <div class="mt-5"><TurnstileWidget ref="turnstile" v-model="token" :sitekey="sitekey" /></div>
+    <div v-if="submissionAllowed" class="mt-5"><TurnstileWidget ref="turnstile" v-model="token" :sitekey="sitekey" /></div>
     <label class="mt-5 flex items-start gap-2 text-xs leading-relaxed text-foreground-600"><input v-model="consent" type="checkbox" required class="mt-0.5" /><span>상담 접수를 위한 이름, 연락처, 이메일, 문의 내용의 수집·이용에 동의합니다. <NuxtLink to="/privacy" class="underline">개인정보 처리 안내</NuxtLink></span></label>
     <div v-if="status==='error'" class="mt-5 rounded-md border border-primary-200 bg-primary-50 px-4 py-3 text-sm text-primary-800" role="alert">{{ formError }}</div>
-    <button type="submit" :disabled="status==='submitting'||!sitekey" class="btn-primary mt-6 w-full py-3 disabled:opacity-60">{{ status==='submitting'?'전송 중...':(pages?.form.submitLabel??'') }}</button>
-    <p class="mt-3 text-center text-xs text-foreground-500">실제 상담 접수 전 개인정보 처리 정책의 운영 승인이 필요합니다.</p>
+    <button type="submit" :disabled="status==='submitting'||!sitekey||!submissionAllowed" class="btn-primary mt-6 w-full py-3 disabled:opacity-60">{{ status==='submitting'?'전송 중...':(pages?.form.submitLabel??'') }}</button>
+    <p class="mt-3 text-center text-xs text-foreground-500">{{ submissionAllowed ? '실제 상담 접수 전 개인정보 처리 정책의 운영 승인이 필요합니다.' : '현재 공개 프리뷰에서는 상담 접수를 사용할 수 없습니다.' }}</p>
   </form>
 </template>

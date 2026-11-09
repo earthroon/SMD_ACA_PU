@@ -1,0 +1,90 @@
+/* SMD-HOME-HERO-CAROUSEL-R1-CF1-CF3
+   The Figma source text remains at its original 1920px max-width.
+   The full-width Hero media is a separate paint owner, including ultrawide. */
+.smd-figma-scene-section--hero,
+.smd-home--hero { background: #fff; }
+.smd-figma-scene-section--hero:has(> .smd-hero-film) [data-figma-node="node-1:5"] { display: none; }
+.smd-figma-scene-section--hero > .smd-figma-scene-svg {
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+}
+.smd-home--hero > .smd-home__container {
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+}
+/* HomeIntroStage, not the 815px source Figma artboard, owns the Hero height. */
+.smd-hero-film {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: #fff;
+  overflow: hidden;
+  z-index: 0;
+}
+.smd-hero-carousel,
+.smd-hero-carousel__viewport,
+.smd-hero-carousel__container,
+.smd-hero-carousel__slide { height: 100%; }
+.smd-hero-carousel { position: relative; width: 100%; min-width: 0; overflow: hidden; }
+.smd-hero-carousel__viewport { width: 100%; overflow: hidden; }
+.smd-hero-carousel__container { display: flex; touch-action: pan-y pinch-zoom; }
+.smd-hero-carousel__slide {
+  position: relative;
+  flex: 0 0 100%;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+}
+.smd-hero-carousel__slide > img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  object-position: var(--hero-focal-x, 50%) var(--hero-focal-y, 50%);
+  user-select: none;
+}
+.smd-hero-carousel:focus-visible { outline: 3px solid var(--smd-action-orange); outline-offset: -4px; }
+/* R1E: arrows are sibling controls outside Embla's draggable viewport. */
+.smd-hero-carousel__control {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: clamp(44px, 3.2vw, 58px);
+  height: clamp(44px, 3.2vw, 58px);
+  padding: 0;
+  border: 1px solid rgba(255,255,255,.85);
+  border-radius: 999px;
+  background: rgba(255,255,255,.86);
+  color: #242424;
+  box-shadow: 0 4px 20px rgba(0,0,0,.22);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transform: translateY(-50%);
+  transition: background-color 150ms ease, box-shadow 150ms ease;
+  cursor: pointer;
+  pointer-events: auto;
+  touch-action: manipulation;
+}
+.smd-hero-carousel__control--previous { left: clamp(12px, 2vw, 40px); }
+.smd-hero-carousel__control--next { right: clamp(12px, 2vw, 40px); }
+.smd-hero-carousel__control:hover:not(:disabled) {
+  background: #fff;
+  box-shadow: 0 6px 24px rgba(0,0,0,.28);
+}
+.smd-hero-carousel__control:focus-visible {
+  outline: 3px solid var(--smd-action-orange);
+  outline-offset: 3px;
+}
+.smd-hero-carousel__control:disabled { opacity: .45; cursor: not-allowed; }
+@media (prefers-reduced-motion: reduce) {
+  .smd-hero-carousel__container { scroll-behavior: auto; }
+  .smd-hero-carousel__control { transition: none; }
+}

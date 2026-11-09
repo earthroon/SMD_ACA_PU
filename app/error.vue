@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {useSiteContent} from '~/composables/useSiteContent';
+import {useContentMode} from '~/composables/useContentMode';
 import type { NuxtError } from '#app';
 import type { PublicContentV2 } from '@smd/content-contracts/contracts';
 import SiteHeader from '~/components/feature/SiteHeader.vue';
@@ -12,7 +13,7 @@ const effectiveStatus = ref(Number(props.error.statusCode) || 500);
 // Error rendering is independent of NuxtPage. Resolve the SAME canonical public
 // endpoint only for a 404 whose shell has not been hydrated by app.vue.
 // No seed import and no production fixture fallback.
-if (effectiveStatus.value === 404 && !content.value) {
+if (effectiveStatus.value === 404 && !content.value && useContentMode() === 'cms') {
   try {
     content.value = await $fetch<PublicContentV2>('/api/content');
   } catch (failure: unknown) {

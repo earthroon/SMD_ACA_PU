@@ -1,4 +1,12 @@
 <script setup lang="ts">
+import HomeHeroFilm from './HomeHeroFilm.vue';
+import type { FilmPaintGeometry } from '~/utils/homeIntroOverlayGeometry';
+import type { HeroMediaStatus } from '~/utils/homeIntroMediaGate';
+const emit = defineEmits<{
+  'film-paint-geometry': [geometry: FilmPaintGeometry];
+  'film-media-status': [status: HeroMediaStatus];
+}>();
+const props=defineProps<{paintHeightCssPx?:number|null}>();
 import HomeFigmaText from './HomeFigmaText.vue';
 import { homeCopyRefs } from '~/data/home-r2-composition';
 import { homeFigmaText } from '~/data/home-r2-copy';
@@ -13,7 +21,10 @@ if (copy.heading!=='node-35:5' ||
 }
 </script>
 <template>
-  <section data-home-section="hero" data-figma-node="node-1:4" class="smd-home-section smd-home--hero">
+  <section data-home-section="hero" data-figma-node="node-1:4" class="smd-home-section smd-home--hero"
+    :style="props.paintHeightCssPx!=null ? {height:`${props.paintHeightCssPx}px`} : undefined">
+    <HomeHeroFilm :paint-height-css-px="props.paintHeightCssPx" @film-paint-geometry="emit('film-paint-geometry', $event)"
+      @film-media-status="emit('film-media-status', $event)" />
     <div class="smd-home__container">
       <p class="font-label text-xs font-medium tracking-[0.16em] text-foreground-700"><HomeFigmaText :text-key="copy.eyebrow" /></p>
       <h1 class="smd-home__hero-heading mt-6 max-w-4xl whitespace-pre-line font-heading text-4xl font-semibold leading-tight text-foreground-950 md:text-6xl">

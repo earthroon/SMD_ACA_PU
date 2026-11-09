@@ -21,7 +21,8 @@ const components={hero:CurriculumHero,facts:CurriculumFacts,introduction:Curricu
 </script>
 <template><div class="smd-curriculum" :style="curriculumWideTokens"
   data-curriculum-contract="SMD_CURRICULUM_BUILD_SOURCE_V1" data-content-authority="PSD_BUILD_SOURCE_V1"
-  :data-psd-sha256="curriculumR1Source.psdSha256" :data-operational-publication="operational.publicationKey">
+  :data-psd-sha256="curriculumR1Source.psdSha256" :data-operational-publication="operational.publicationKey"
+  :data-week-program-source="operational.weekProgram?'PUBLIC_PROJECTION_V1':'PSD_SOURCE_ONLY'">
   <template v-for="section in curriculumR1Source.sections" :key="section.id">
     <div v-if="section.id==='consultation-cta'&&operational.beforeCta.length" class="smd-curriculum__cms-insert" data-curriculum-cms-anchor="beforeCta"><CmsSlot :nodes="operational.beforeCta" /></div>
     <section :id="'curriculum-'+section.id" class="smd-curriculum-section" :data-curriculum-section="section.id"
@@ -29,6 +30,7 @@ const components={hero:CurriculumHero,facts:CurriculumFacts,introduction:Curricu
       <div class="smd-curriculum__artboard"><CurriculumSourceShapes :section-id="section.id" />
         <CurriculumCourseInformation v-if="section.id==='course-information'" :href="operational.consultationUrl" />
         <CurriculumConsultationCta v-else-if="section.id==='consultation-cta'" :href="operational.consultationUrl" />
+        <CurriculumWeekProgram v-else-if="section.id==='six-week-program'" :program="operational.weekProgram" />
         <component :is="components[section.id]" v-else />
       </div>
     </section>
