@@ -1,9 +1,9 @@
 export default defineNuxtConfig({
   compatibilityDate: '2026-10-12',
   devtools: { enabled: false },
-  modules: ['@pinia/nuxt'],
+  modules: ['@pinia/nuxt', 'motion-v/nuxt'],
   postcss: { plugins: { tailwindcss: {}, autoprefixer: {} } },
-  css: ['~/assets/css/main.css'],
+  css: ['~/assets/css/main.css', '~/assets/css/catalogue-r7.css'],
   nitro: { preset: 'cloudflare-module' },
   app: {
     head: {

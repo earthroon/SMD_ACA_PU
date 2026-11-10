@@ -2,6 +2,7 @@
 import {useSiteContent} from '~/composables/useSiteContent';
 import {useContentMode} from '~/composables/useContentMode';
 import type { NuxtError } from '#app';
+import { clearError } from '#app';
 import type { PublicContentV2 } from '@smd/content-contracts/contracts';
 import SiteHeader from '~/components/feature/SiteHeader.vue';
 import SiteFooter from '~/components/feature/SiteFooter.vue';

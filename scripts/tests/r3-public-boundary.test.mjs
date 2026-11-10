@@ -22,11 +22,23 @@ test('public artifact pin verified before build',()=>{
   assert.equal(pkg.dependencies['@smd/content-contracts'],`file:./vendor/content-contracts/${pin.tarball}`);
   assert.match(pin.sha256,/^[a-f0-9]{64}$/);
 });
-test('no public admin pages, BFF or privileged binding',()=>{
+test('no public admin pages or privileged binding; PublicSurface only',()=>{
   assert.equal(existsSync(resolve(root,'app/pages/admin')),false);
   assert.equal(existsSync(resolve(root,'server/api/admin')),false);
   const wr=read('wrangler.toml');
-  assert.doesNotMatch(wr,/\[\[services\]\]|SMD_CORE/);
+  // R7: exactly one public Core service binding.
+  const blocks = wr.split(/^\s*\[\[services\]\]\s*$/m);
+  assert.equal(blocks.length, 2, 'exactly one service block');
+
+  const service = blocks[1].split(/^\s*\[/m, 1)[0];
+  const rows = service.split(/\r?\n/)
+    .map(row => row.trim())
+    .filter(row => row && !row.startsWith('#'));
+
+  assert.equal(rows.length, 3, 'no extra service keys');
+  assert.match(service, /^\s*binding\s*=\s*"SMD_CORE"\s*$/m);
+  assert.match(service, /^\s*service\s*=\s*"smd-core"\s*$/m);
+  assert.match(service, /^\s*entrypoint\s*=\s*"PublicSurface"\s*$/m);
   assert.match(wr,/NUXT_PUBLIC_CONTENT_MODE = "standalone"/);
   const cms=read('wrangler.cms.toml');
   assert.match(cms,/entrypoint = "PublicSurface"/);

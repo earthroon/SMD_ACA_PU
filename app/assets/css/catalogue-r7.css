@@ -1,0 +1,175 @@
+/* SMD R7 CF2 / presentation owner only.
+ * No geometry, scroll, media, Figma or PSD source mutations are authorized here.
+ * Existing Tailwind oklch() channel variables remain untouched.
+ */
+.smd-site-shell[data-catalogue-ui="r7"] {
+  --smd-r7-bg: var(--smd-warm-stone);
+  --smd-r7-ink: var(--smd-brand-navy);
+  --smd-r7-accent: var(--smd-action-orange);
+  --smd-r7-rule: rgb(23 44 87 / 0.22);
+  --smd-r7-rule-weak: rgb(23 44 87 / 0.12);
+  --smd-r7-rule-inverse: rgb(229 221 210 / 0.34);
+
+  /* R6 reference metrics, declared now; activated by CatalogueSheet in CF3. */
+  --smd-r7-type-display: clamp(55px, 4.15vw, 84px);
+  --smd-r7-type-section: clamp(36px, 3.8vw, 72px);
+  --smd-r7-type-body: 17px;
+  --smd-r7-type-label: 12px;
+  --smd-r7-type-caption: 11px;
+  --smd-r7-leading-display: 1.18;
+  --smd-r7-leading-section: 1.22;
+  --smd-r7-leading-body: 1.7;
+
+  background: var(--smd-r7-bg);
+  color: var(--smd-r7-ink);
+  font-family: var(--font-ui);
+}
+
+/* The shell's own surface is authored here, not via replacements of Tailwind
+ * channel variables that are still consumed by non-R7 views. */
+.smd-site-shell[data-catalogue-ui="r7"] > main {
+  background: var(--smd-r7-bg);
+  color: var(--smd-r7-ink);
+}
+
+/* Header: reuse SiteHeader.vue geometry, routes, drawer and CTA conditions.
+ * CF2 intentionally uses a Stone header at Hero top: the current source
+ * image has not yet been replaced by CF4's approved full-screen artwork.
+ * This keeps the original Navy/Orange SVG legible and avoids white inversion.
+ */
+.smd-site-shell[data-catalogue-ui="r7"] .smd-site-header {
+  background: var(--smd-r7-bg);
+  border-bottom-color: var(--smd-r7-rule);
+  box-shadow: none;
+  color: var(--smd-r7-ink);
+}
+.smd-site-shell[data-catalogue-ui="r7"] .smd-site-header--home[data-home-header-mode="top"] {
+  /* The legacy Home header has an explicit high-priority transparent paint. */
+  background: var(--smd-r7-bg) !important;
+}
+.smd-site-shell[data-catalogue-ui="r7"] .smd-site-header--home[data-home-header-mode="menu"] {
+  background: var(--smd-r7-bg);
+  box-shadow: none;
+}
+.smd-site-shell[data-catalogue-ui="r7"] .smd-site-header__brand,
+.smd-site-shell[data-catalogue-ui="r7"] .smd-site-header__brand-label,
+.smd-site-shell[data-catalogue-ui="r7"] .smd-site-header__nav-link,
+.smd-site-shell[data-catalogue-ui="r7"] .smd-site-header__toggle,
+.smd-site-shell[data-catalogue-ui="r7"] .smd-site-header__drawer-link {
+  color: var(--smd-r7-ink);
+}
+.smd-site-shell[data-catalogue-ui="r7"] .smd-site-header--home[data-home-header-mode="top"]
+:is(.smd-site-header__brand, .smd-site-header__brand-label,
+    .smd-site-header__nav-link, .smd-site-header__toggle) {
+  color: var(--smd-r7-ink);
+}
+.smd-site-shell[data-catalogue-ui="r7"] .smd-site-header--home[data-home-header-mode="top"]
+.smd-site-header__figma-logo {
+  /* Necessary because legacy Home applies brightness(0) invert(1). */
+  filter: none;
+}
+.smd-site-shell[data-catalogue-ui="r7"] .smd-site-header__nav-link:is(:hover, [aria-current="page"]),
+.smd-site-shell[data-catalogue-ui="r7"] .smd-site-header__drawer-link:is(:hover, [aria-current="page"]) {
+  color: var(--smd-r7-ink);
+  text-decoration: underline;
+  text-decoration-color: var(--smd-r7-accent);
+  text-underline-offset: 7px;
+  text-decoration-thickness: 2px;
+}
+.smd-site-shell[data-catalogue-ui="r7"] .smd-site-header__cta,
+.smd-site-shell[data-catalogue-ui="r7"] .smd-site-header__drawer-cta,
+.smd-site-shell[data-catalogue-ui="r7"] .smd-site-header--home[data-home-header-mode="top"] .smd-site-header__cta,
+.smd-site-shell[data-catalogue-ui="r7"] .smd-site-header--home[data-home-header-mode="menu"] .smd-site-header__cta {
+  background: var(--smd-r7-ink);
+  color: var(--smd-r7-bg);
+  border-color: var(--smd-r7-ink);
+}
+.smd-site-shell[data-catalogue-ui="r7"] .smd-site-header__cta:hover,
+.smd-site-shell[data-catalogue-ui="r7"] .smd-site-header__drawer-cta:hover {
+  background: var(--smd-r7-ink);
+  color: var(--smd-r7-bg);
+  box-shadow: inset 0 -3px 0 var(--smd-r7-accent);
+}
+.smd-site-shell[data-catalogue-ui="r7"] .smd-site-header__drawer {
+  background: var(--smd-r7-bg);
+  border-top-color: var(--smd-r7-rule);
+  box-shadow: none;
+}
+.smd-site-shell[data-catalogue-ui="r7"] .smd-site-header__drawer-link {
+  border-bottom-color: var(--smd-r7-rule);
+}
+.smd-site-shell[data-catalogue-ui="r7"] .smd-site-header__cta-unavailable,
+.smd-site-shell[data-catalogue-ui="r7"] .smd-site-header__drawer-unavailable,
+.smd-site-shell[data-catalogue-ui="r7"] .smd-site-header__logo-error {
+  color: var(--smd-r7-ink);
+  text-decoration: underline;
+  text-decoration-color: var(--smd-r7-accent);
+}
+
+/* Common page hero/scaffold: background and text only; preserve padding,
+ * widths, and existing CMS/route presentation contracts. */
+.smd-site-shell[data-catalogue-ui="r7"] .smd-page-hero,
+.smd-site-shell[data-catalogue-ui="r7"] .smd-scaffold-page {
+  background: var(--smd-r7-bg);
+  color: var(--smd-r7-ink);
+  border-color: var(--smd-r7-rule);
+}
+.smd-site-shell[data-catalogue-ui="r7"] .smd-scaffold-page :is(h1, p) {
+  color: var(--smd-r7-ink);
+}
+
+/* Footer: single color owner across Home, About, Curriculum, Reviews, etc.
+ * The existing source has independent footer selectors in main.css and the
+ * Figma scene CSS. This skin is deliberately more specific than both. */
+.smd-site-shell[data-catalogue-ui="r7"] .smd-site-footer {
+  background: var(--smd-r7-ink);
+  color: var(--smd-r7-bg);
+  border-color: var(--smd-r7-rule-inverse);
+}
+.smd-site-shell[data-catalogue-ui="r7"] .smd-site-footer :is(p, li, a, span, div, strong) {
+  color: inherit;
+}
+.smd-site-shell[data-catalogue-ui="r7"] .smd-site-footer
+:is(.text-foreground-950, .text-foreground-700, .text-foreground-600,
+    .text-foreground-500, .text-background-50) {
+  color: inherit;
+}
+.smd-site-shell[data-catalogue-ui="r7"] .smd-site-footer :is(.border-t, .border-background-200, .btn-ghost) {
+  border-color: var(--smd-r7-rule-inverse);
+}
+.smd-site-shell[data-catalogue-ui="r7"] .smd-site-footer a:hover {
+  color: var(--smd-r7-bg);
+  text-decoration: underline;
+  text-decoration-color: var(--smd-r7-accent);
+  text-underline-offset: 5px;
+}
+.smd-site-shell[data-catalogue-ui="r7"] .smd-site-footer .bg-foreground-950 {
+  background: var(--smd-r7-bg);
+  color: var(--smd-r7-ink);
+}
+
+/* CF3 explicitly opts in to these roles as its catalogue components land.
+ * Do not apply the new sizes to existing Figma native text/PSD baseline. */
+.smd-site-shell[data-catalogue-ui="r7"] .smd-r7-type-display {
+  font-family: var(--font-heading);
+  font-size: var(--smd-r7-type-display);
+  line-height: var(--smd-r7-leading-display);
+}
+.smd-site-shell[data-catalogue-ui="r7"] .smd-r7-type-section {
+  font-family: var(--font-heading);
+  font-size: var(--smd-r7-type-section);
+  line-height: var(--smd-r7-leading-section);
+}
+.smd-site-shell[data-catalogue-ui="r7"] .smd-r7-type-body {
+  font-family: var(--font-body);
+  font-size: var(--smd-r7-type-body);
+  line-height: var(--smd-r7-leading-body);
+}
+.smd-site-shell[data-catalogue-ui="r7"] .smd-r7-type-label {
+  font-family: var(--font-label);
+  font-size: var(--smd-r7-type-label);
+}
+.smd-site-shell[data-catalogue-ui="r7"] .smd-r7-type-caption {
+  font-family: var(--font-body);
+  font-size: var(--smd-r7-type-caption);
+}
