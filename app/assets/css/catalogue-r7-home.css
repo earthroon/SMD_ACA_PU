@@ -153,7 +153,7 @@
   height: 94px;
   border-color: transparent;
 }
-.smd-site-shell[data-catalogue-ui="r7"]:has(.smd-r7-home) .smd-site-header__inner {
+.smd-site-shell[data-catalogue-ui="r7"]:has(:is(.smd-r7-home,.smd-r7-route)) .smd-site-header__inner {
   width: min(calc(100% - 148px), 1650px);
   max-width: none;
   gap: 38px;
@@ -273,7 +273,7 @@
   .smd-r7-home__method > .smd-r7-media { height:270px; flex:none; }
   .smd-r7-home .smd-r7-quartet__item > .smd-r7-media { height:260px; flex:none; }
   .smd-r7-home .smd-r7-sheet__quartet { height:auto; grid-template-rows:auto auto; }
-  .smd-site-shell[data-catalogue-ui="r7"]:has(.smd-r7-home) .smd-site-header__inner { width:min(calc(100% - 88px),1350px); }
+  .smd-site-shell[data-catalogue-ui="r7"]:has(:is(.smd-r7-home,.smd-r7-route)) .smd-site-header__inner { width:min(calc(100% - 88px),1350px); }
 }
 @media (max-width:1099px) {
   .smd-r7-home__frame { width:min(calc(100% - 52px),920px); }
@@ -285,13 +285,13 @@
   .smd-r7-home .smd-r7-quartet__intro { grid-template-columns:1fr; }
   .smd-r7-home .smd-r7-sheet__core > * { height:auto; }
   .smd-r7-home__cover-foot { font-size:10px; }
-  .smd-site-shell[data-catalogue-ui="r7"]:has(.smd-r7-home) .smd-site-header__inner { width:min(calc(100% - 52px),920px); }
+  .smd-site-shell[data-catalogue-ui="r7"]:has(:is(.smd-r7-home,.smd-r7-route)) .smd-site-header__inner { width:min(calc(100% - 52px),920px); }
 }
 @media (max-width:680px) {
   .smd-r7-home__frame { width:calc(100% - 40px); }
   .smd-site-shell[data-catalogue-ui="r7"]:has(.smd-r7-home) .smd-site-header { height:68px; }
   .smd-site-shell[data-catalogue-ui="r7"] .smd-site-header .smd-r7-brand-logo { width:190px; }
-  .smd-site-shell[data-catalogue-ui="r7"]:has(.smd-r7-home) .smd-site-header__inner { width:calc(100% - 40px); gap:10px; }
+  .smd-site-shell[data-catalogue-ui="r7"]:has(:is(.smd-r7-home,.smd-r7-route)) .smd-site-header__inner { width:calc(100% - 40px); gap:10px; }
   .smd-r7-home__cover-wash { background:linear-gradient(90deg,rgb(229 221 210 / .9),rgb(229 221 210 / .42) 68%,rgb(229 221 210 / .10)); }
   .smd-r7-home__cover-copy { top:44%; transform:translateY(-20%); width:94%; }
   .smd-r7-home__cover h1 { font-size:clamp(31px,8.6vw,49px); line-height:1.22; }

@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import SiteHeader from '~/components/feature/SiteHeader.vue';
+import { useCatalogueSpringScroll } from '~/composables/useCatalogueSpringScroll';
 import SiteFooter from '~/components/feature/SiteFooter.vue';
 const route = useRoute();
+useCatalogueSpringScroll();
 </script>
 
 <template>
