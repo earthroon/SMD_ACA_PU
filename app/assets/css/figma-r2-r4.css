@@ -23,3 +23,43 @@
 .smd-figma-native-text__runs span {
   font-weight: 600 !important;
 }
+
+/* METHODS_IMAGE_PAINT_R1
+   Bound images suppress only their redundant inner placeholder paint.
+   Figma coordinates and unbound placeholders remain unchanged. */
+
+.smd-figma-scene-section--methods
+[data-figma-node="node-1:56"]:has(
+  > image[data-home-media-slot="home.methods.02.image"][href]
+)
+[data-figma-self-paint="node-1:57"],
+
+.smd-figma-scene-section--methods
+[data-figma-node="node-1:58"]:has(
+  > image[data-home-media-slot="home.methods.03.image"][href]
+)
+[data-figma-self-paint="node-1:59"] {
+  display: none;
+}
+
+/* Methods 01 / 02 title weight */
+.smd-figma-scene-section--methods
+foreignObject[data-figma-text-instance="node-18:114"]
+.smd-figma-native-text__runs span,
+
+.smd-figma-scene-section--methods
+foreignObject[data-figma-text-instance="node-1:61"]
+.smd-figma-native-text__runs span {
+  font-weight: 600 !important;
+}
+
+/* Semantic Vue3 methods title weight */
+.smd-home--semantic-reflow
+.smd-home--methods
+[data-figma-text="node-18:114"] > span,
+
+.smd-home--semantic-reflow
+.smd-home--methods
+[data-figma-text="node-1:61"] > span {
+  font-weight: 600 !important;
+}

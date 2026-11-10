@@ -43,7 +43,7 @@
 
 .smd-site-header__brand-label {
   display: block; flex: 0 0 auto; min-width: max-content; white-space: nowrap;
-  overflow: visible; font-family: var(--font-ui); font-size: 20px; font-weight: 700;
+  overflow: visible; font-family: var(--font-ui); font-size: 20px; font-weight: 800;
   letter-spacing: -.008em; line-height: 1.35;
 }
 .smd-site-header__desktop-nav {display: flex; align-items: center; justify-content: flex-end; gap: clamp(18px, 1.7vw, 32px); margin-left: auto; min-width: 0;}
@@ -132,3 +132,154 @@
 }
 
 @media (max-width: 599px) { :root { --smd-header-height: 76px; } }
+
+/*
+ * SMD HOME HEADER · R1 CROSS DISSOLVE
+ *
+ * Desktop homepage only.
+ * TOP  : White Solid, no navigation chrome.
+ * MENU : Existing header content is revealed.
+ *
+ * Figma geometry and header height remain unchanged.
+ */
+
+@media (min-width: 1380px) {
+  .smd-site-header--home {
+    background: #fff;
+    border-bottom: 0;
+  }
+
+  /* Existing menu is the single content owner. */
+  .smd-site-header--home .smd-site-header__inner {
+    position: relative;
+    opacity: 1;
+    visibility: visible;
+
+    transition:
+      opacity 360ms cubic-bezier(.22, 1, .36, 1),
+      visibility 0s linear 0s;
+  }
+
+  /* Top of homepage: pure white surface. */
+  .smd-site-header--home[data-home-header-mode="top"] {
+    background: #fff;
+    box-shadow: none;
+  }
+
+  .smd-site-header--home[data-home-header-mode="top"]
+  .smd-site-header__inner {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+
+    transition:
+      opacity 360ms cubic-bezier(.22, 1, .36, 1),
+      visibility 0s linear 360ms;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .smd-site-header--home .smd-site-header__inner {
+    transition: none !important;
+  }
+}
+
+/* HOME HEADER · TRANSPARENT TOP / SOLID SCROLLED */
+
+/* 메뉴 내용은 처음부터 반드시 표시 */
+.smd-site-header--home .smd-site-header__inner {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
+/* Y=0: 배경은 투명, 메뉴 내용은 흰색 */
+.smd-site-header--home[data-home-header-mode="top"] {
+  background: transparent !important;
+  border: 0;
+  box-shadow: none;
+}
+
+.smd-site-header--home[data-home-header-mode="top"]
+:is(
+  .smd-site-header__brand,
+  .smd-site-header__brand-label,
+  .smd-site-header__nav-link,
+  .smd-site-header__toggle
+) {
+  color: #fff;
+}
+
+.smd-site-header--home[data-home-header-mode="top"]
+.smd-site-header__figma-logo {
+  filter: brightness(0) invert(1);
+}
+
+.smd-site-header--home[data-home-header-mode="top"]
+.smd-site-header__cta {
+  background: transparent;
+  color: #fff;
+  border: 1px solid #fff;
+}
+
+/* 스크롤 시작: 흰색 메뉴바로 크로스디졸브 */
+.smd-site-header--home[data-home-header-mode="menu"] {
+  background: #fff;
+  border: 0;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+}
+
+.smd-site-header--home[data-home-header-mode="menu"]
+:is(
+  .smd-site-header__brand,
+  .smd-site-header__brand-label,
+  .smd-site-header__nav-link,
+  .smd-site-header__toggle
+) {
+  color: #2f2f2f;
+}
+
+.smd-site-header--home[data-home-header-mode="menu"]
+.smd-site-header__figma-logo {
+  filter: none;
+}
+
+.smd-site-header--home[data-home-header-mode="menu"]
+.smd-site-header__cta {
+  background: var(--smd-action-orange);
+  color: #fff;
+  border: 0;
+}
+
+/* 동일 좌표에서 색상만 전환 */
+.smd-site-header--home {
+  transition:
+    background-color 360ms ease,
+    box-shadow 360ms ease;
+}
+
+.smd-site-header--home .smd-site-header__brand,
+.smd-site-header--home .smd-site-header__brand-label,
+.smd-site-header--home .smd-site-header__nav-link,
+.smd-site-header--home .smd-site-header__toggle {
+  transition: color 360ms ease;
+}
+
+.smd-site-header--home .smd-site-header__figma-logo {
+  transition: filter 360ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .smd-site-header--home,
+  .smd-site-header--home .smd-site-header__brand,
+  .smd-site-header--home .smd-site-header__brand-label,
+  .smd-site-header--home .smd-site-header__nav-link,
+  .smd-site-header--home .smd-site-header__toggle,
+  .smd-site-header--home .smd-site-header__figma-logo {
+    transition: none;
+  }
+}
+.smd-home--figma-scene,
+.smd-home--semantic-reflow {
+  --home-header-offset: 0px;
+}

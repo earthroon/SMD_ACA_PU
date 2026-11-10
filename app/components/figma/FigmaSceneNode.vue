@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import {figmaScene} from '~/data/figma-r2-scene.generated';
 import {homeMediaSlots, type HomeMediaSlotId} from '~/data/home-r2-manifest';
-import {useHomeR2Published} from '~/composables/useHomeR2Published';
-import {useSiteContent} from '~/composables/useSiteContent';
-import {useStandalonePublishedMedia} from '~/composables/useStandalonePublishedMedia';
-import {resolveHomeR2PublicImage} from '~/utils/home-r2-v6-public';
+import {useHomeMediaSlot} from '~/composables/useHomeMediaSlot';
 import FigmaSvgAsset from './FigmaSvgAsset.vue';
 import FigmaNativeText from './FigmaNativeText.vue';
 import {introItemIndex} from '~/utils/homeIntroTimeline';
@@ -57,19 +54,20 @@ const solidFill=computed(()=>{
 });
 const imageOwnerMap=Object.fromEntries(Object.entries(homeMediaSlots).map(([id,v])=>[v.sourceNodeKey,id]));
 const mediaSlot=computed(()=>imageOwnerMap[props.nodeKey] as HomeMediaSlotId|undefined);
-const published=useHomeR2Published();const content=useSiteContent();const route=useRoute();
-const standaloneMedia=useStandalonePublishedMedia();
-const image=computed(()=>{
-  if(mode.value!=='full'||!mediaSlot.value||route.path!=='/')return null;
-  const standalone=standaloneMedia.image('home',mediaSlot.value);
-  switch(standalone.kind){
-    case 'published':return standalone;
-    case 'unbound':return null;
-    case 'local':break;
+const image = useHomeMediaSlot(mediaSlot, () => mode.value === 'full');
+
+/** Local PNG 01/03 only. CMS-published images retain original geometry. */
+const imageOverscan = computed(() => {
+  switch (mediaSlot.value) {
+    case 'home.methods.01.image':
+    case 'home.methods.03.image':
+      return image.value?.kind === 'local' ? 1.10 : 1;
+
+    default:
+      return 1;
   }
-  if(!published.value||!content.value)return null;
- return resolveHomeR2PublicImage(published.value,content.value.publication,mediaSlot.value);
 });
+
 </script>
 <template>
   <g v-if="node && node.visible && !blocked" :transform="translate" :data-figma-node="node.key"
@@ -84,9 +82,26 @@ const image=computed(()=>{
       <path v-else-if="op?.kind==='self-paint'" :d="shape" :fill="solidFill"
         :data-figma-self-paint="node.key" :opacity="selfPaint?.opacity??1" />
     </template>
-    <image v-if="image" x="0" y="0" :width="node.rect[2]" :height="node.rect[3]"
-      :href="image.src" preserveAspectRatio="xMidYMid meet" :clip-path="`url(#${clipId})`"
-      :data-home-media-slot="mediaSlot" :data-asset-id="image.assetId" />
+   <image
+  v-if="image"
+  :x="node.rect[2] * (1 - imageOverscan) / 2"
+  :y="node.rect[3] * (1 - imageOverscan) / 2"
+  :width="node.rect[2] * imageOverscan"
+  :height="node.rect[3] * imageOverscan"
+  :href="image.src"
+  :preserveAspectRatio="
+    mediaSlot?.startsWith('home.methods.') ||
+    mediaSlot === 'home.special-start.photo'
+      ? 'xMidYMid slice'
+      : 'xMidYMid meet'
+  "
+  :clip-path="`url(#${clipId})`"
+  :data-home-media-slot="mediaSlot"
+  :data-asset-id="image.assetId ?? undefined"
+  :data-home-media-origin="image.kind"
+  :data-image-overscan="imageOverscan"
+/>
+/>
     <g v-if="displayChildren.length" :clip-path="node.clippedChildren ? `url(#${clipId})` : undefined">
       <template v-for="child in displayChildren" :key="child">
         <g v-if="introItemIndex(child) !== null" class="smd-home-intro__item"

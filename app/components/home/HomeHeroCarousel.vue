@@ -1,23 +1,40 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, useId, watch } from 'vue';
-import useEmblaCarousel from 'embla-carousel-vue';
-import Autoplay from 'embla-carousel-autoplay';
 import { useStandalonePublishedMedia } from '~/composables/useStandalonePublishedMedia';
+import { useContentMode } from '~/composables/useContentMode';
+import { resolveHomeHeroLocalMedia } from '~/utils/homeHeroLocalMedia';
+import { heroDissolveLayerPhase, heroDissolveSwipeDirection, nextHeroDissolveIndex,
+  type HeroDirection } from '~/utils/homeHeroDissolveState';
 import type { HeroMediaStatus } from '~/utils/homeIntroMediaGate';
 import {
-  HERO_CAROUSEL_DELAY_MS, HERO_CAROUSEL_REVISION, resolveHeroCarouselSlots,
+  HERO_CAROUSEL_DELAY_MS, HERO_CAROUSEL_REVISION, HERO_DISSOLVE_DURATION_MS,
+  HERO_CAPTION_START_DELAY_MS, resolveHeroCarouselSlots,
   type HeroCarouselSlot,
 } from '~/data/home-hero-carousel';
 
 const emit = defineEmits<{ 'media-status': [status: HeroMediaStatus] }>();
 const media = useStandalonePublishedMedia();
-const slides = computed(() => resolveHeroCarouselSlots(id => media.image('home', id)));
+const contentMode = useContentMode();
+const slides = computed(() => resolveHeroCarouselSlots(id => {
+  const binding = media.image('home', id);
+  switch (binding.kind) {
+    case 'local':
+      switch (contentMode) {
+        case 'standalone': {
+          const local = resolveHomeHeroLocalMedia(id);
+          return {kind: 'local' as const, ...local};
+        }
+        case 'cms': return binding; // CMS Hero schema is not yet part of HomeR2PublicProjection.
+      }
+      throw new Error('SMD_HOME_HERO_CONTENT_MODE_UNSUPPORTED');
+    case 'published':case 'unbound': return binding;
+  }
+}));
 const sourceRevision = computed(() => slides.value.map(s =>
   `${s.slotId}:${s.src}:${s.width}x${s.height}:${s.publicationId ?? 'local'}:${s.assetId ?? 'local'}`,
 ).join('|'));
 
-// Nuxt request-scoped state is shared by the Figma and semantic instances.
-// Hidden instances never write selection; this preserves the logical slide across breakpoints.
+// Preserve Nuxt's shared Figma/semantic selection and single active timer lease.
 const selectedIndex = useState<number>('smd-hero-carousel-selected-r1', () => 0);
 const autoplayLease = useState<string | null>('smd-hero-carousel-autoplay-lease-r1', () => null);
 const instanceId = useId();
@@ -29,31 +46,24 @@ const pageVisible = ref(true);
 const reducedMotion = ref(false);
 const hovered = ref(false);
 const focused = ref(false);
-// Mark decoded rather than network-loaded bytes: a frame must be paintable.
 const loadedKeys = ref<ReadonlySet<string>>(new Set());
 const decodingKeys = new Set<string>();
 const loadFault = ref<string | null>(null);
 
-const autoplay = Autoplay({
-  delay: HERO_CAROUSEL_DELAY_MS,
-  jump: false, // Auto progression must animate, not snap instantly.
-  playOnInit: false,
-  stopOnInteraction: false,
-  stopOnMouseEnter: true,
-  stopOnFocusIn: true,
-});
-const options = computed(() => ({
-  loop: true,
-  align: 'start' as const,
-  slidesToScroll: 1,
-  dragFree: false,
-  watchDrag: true,
-  duration: reducedMotion.value ? 0 : 35,
-  active: owner.value,
-}));
-const [emblaRef, emblaApi] = useEmblaCarousel(options, [autoplay]);
-type EmblaInstance = NonNullable<(typeof emblaApi)['value']>;
-
+// Local presentation state; never copy the immutable Figma text into a carousel slide.
+// The existing Figma and semantic captions respond through the parent CSS :has() selector.
+const leavingIndex = ref<number | null>(null);
+const enteringVisible = ref(true);
+const captionPhase = ref<'visible' | 'hidden'>('visible');
+const transitioning = computed(() => leavingIndex.value !== null);
+const pendingIndex = ref<number | null>(null);
+let motionEpoch = 0;
+let autoplayTimer: ReturnType<typeof setTimeout> | null = null;
+let captionTimer: ReturnType<typeof setTimeout> | null = null;
+let fadeTimer: ReturnType<typeof setTimeout> | null = null;
+let prepareFrame: number | null = null;
+let revealFrame: number | null = null;
+let touchStart: {pointerId: number; x: number; y: number} | null = null;
 let desktopQuery: MediaQueryList | null = null;
 let reducedQuery: MediaQueryList | null = null;
 let intersectionObserver: IntersectionObserver | null = null;
@@ -65,70 +75,157 @@ const ready = computed(() => slides.value.every(s => loadedKeys.value.has(imageK
 const canPlay = computed(() => owner.value && intersecting.value && pageVisible.value &&
   !reducedMotion.value && !hovered.value && !focused.value && !loadFault.value && ready.value);
 
+function clearAutoplay(): void {
+  if (autoplayTimer !== null) clearTimeout(autoplayTimer);
+  autoplayTimer = null;
+}
+function clearMotionCallbacks(): void {
+  if (captionTimer !== null) clearTimeout(captionTimer);
+  if (fadeTimer !== null) clearTimeout(fadeTimer);
+  if (prepareFrame !== null) cancelAnimationFrame(prepareFrame);
+  if (revealFrame !== null) cancelAnimationFrame(revealFrame);
+  captionTimer = null;
+  fadeTimer = null;
+  prepareFrame = null;
+  revealFrame = null;
+}
+function settleMotion(): void {
+  ++motionEpoch; // Invalidate older nextTick, frames and timers.
+  clearMotionCallbacks();
+  leavingIndex.value = null;
+  enteringVisible.value = true;
+  pendingIndex.value = null;
+  captionPhase.value = 'visible';
+}
 function syncAutoplay(): void {
-  const api = emblaApi.value;
-  const pluginReady = Boolean(api?.plugins()?.autoplay);
-  if (!canPlay.value || !pluginReady) {
-    if (pluginReady && autoplay.isPlaying()) autoplay.stop();
+  if (!mounted || !canPlay.value || slides.value.length < 2) {
+    clearAutoplay();
+    // Stop the old timer before releasing the lease to another responsive instance.
     if (autoplayLease.value === instanceId) autoplayLease.value = null;
     return;
   }
-  // A Nuxt request-scoped lease serializes handoff between Figma and semantic
-  // instances. Releasing the lease occurs only AFTER stopping the old timer.
-  if (autoplayLease.value !== null && autoplayLease.value !== instanceId) return;
-  if (autoplayLease.value === null) autoplayLease.value = instanceId;
-  if (!autoplay.isPlaying()) autoplay.play(false);
-}
-function onSelected(api: EmblaInstance): void {
-  if (!owner.value || !mounted || document.hidden) return;
-  const index = api.selectedScrollSnap();
-  if (index >= 0 && index < slides.value.length) selectedIndex.value = index;
-}
-function alignToSelection(api: EmblaInstance): void {
-  if (!owner.value || !mounted) return;
-  const wanted = selectedIndex.value;
-  if (!Number.isInteger(wanted) || wanted < 0 || wanted >= slides.value.length) {
-    throw new Error('HERO_CAROUSEL_SELECTION_INVALID');
+  if (autoplayLease.value !== null && autoplayLease.value !== instanceId) {
+    clearAutoplay();
+    return;
   }
-  if (api.selectedScrollSnap() !== wanted) api.scrollTo(wanted, true);
+  if (autoplayLease.value === null) autoplayLease.value = instanceId;
+  if (autoplayTimer !== null) return;
+  autoplayTimer = setTimeout(() => {
+    autoplayTimer = null;
+    if (!mounted || !canPlay.value || autoplayLease.value !== instanceId) return;
+    const next = nextHeroDissolveIndex(selectedIndex.value, 'next', slides.value.length);
+    requestTransition(next, 'auto');
+  }, HERO_CAROUSEL_DELAY_MS);
 }
-function onReInit(api: EmblaInstance): void {
-  alignToSelection(api);
-  // Embla v8 leaves plugins() undefined while options.active=false.
-  // After an active reInit, however, the registered autoplay must exist.
-  if (owner.value && !api.plugins()?.autoplay) {
-    throw new Error('HERO_CAROUSEL_AUTOPLAY_PLUGIN_UNAVAILABLE');
+function finishTransition(epoch: number): void {
+  if (!mounted || motionEpoch !== epoch) return;
+  clearMotionCallbacks();
+  leavingIndex.value = null;
+  enteringVisible.value = true;
+  captionPhase.value = 'visible';
+  const pending = pendingIndex.value;
+  pendingIndex.value = null;
+  if (pending !== null && pending !== selectedIndex.value && owner.value && ready.value && !loadFault.value) {
+    requestTransition(pending, 'manual');
+    return;
   }
   syncAutoplay();
 }
-watch(emblaApi, (current, previous) => {
-  previous?.off('select', onSelected);
-  previous?.off('reInit', onReInit);
-  if (current) {
-    current.on('select', onSelected);
-    current.on('reInit', onReInit);
-    void nextTick().then(() => {
-      if (!mounted || emblaApi.value !== current) return;
-      alignToSelection(current);
-      syncAutoplay();
-    });
+function requestTransition(target: number, reason: 'auto' | 'manual'): void {
+  if (!mounted || !owner.value || !ready.value || loadFault.value || !pageVisible.value) return;
+  if (!Number.isInteger(target) || target < 0 || target >= slides.value.length) {
+    throw new Error('HERO_DISSOLVE_TARGET_INVALID');
   }
-}, { flush: 'post' });
-watch(selectedIndex, index => {
-  if (!owner.value || !Number.isInteger(index) || index < 0 || index >= slides.value.length) return;
-  const api = emblaApi.value;
-  if (api && api.selectedScrollSnap() !== index) api.scrollTo(index, true);
-});
-watch([owner, reducedMotion], () => {
-  void nextTick().then(() => {
-    if (!mounted) return;
-    const api = emblaApi.value;
-    if (api) alignToSelection(api);
+  // Manual requests during a fade are coalesced, last requested target wins.
+  if (transitioning.value) {
+    if (reason === 'manual') {
+      pendingIndex.value = target;
+      clearAutoplay();
+    }
+    return;
+  }
+  if (target === selectedIndex.value) {
+    if (reason === 'manual') {
+      clearAutoplay();
+      syncAutoplay();
+    }
+    return;
+  }
+  clearAutoplay();
+  if (reducedMotion.value) {
+    settleMotion();
+    selectedIndex.value = target;
     syncAutoplay();
+    return;
+  }
+
+  const epoch = ++motionEpoch;
+  leavingIndex.value = selectedIndex.value;
+  selectedIndex.value = target;
+  enteringVisible.value = false;
+
+  // Two animation frames ensure the incoming layer's opacity:0 is painted
+  // before revealing it with a 700ms CSS transition; no horizontal travel.
+  void nextTick().then(() => {
+    if (!mounted || motionEpoch !== epoch || !owner.value) return;
+    prepareFrame = requestAnimationFrame(() => {
+      prepareFrame = null;
+      if (!mounted || motionEpoch !== epoch || !owner.value) return;
+      revealFrame = requestAnimationFrame(() => {
+        revealFrame = null;
+        if (!mounted || motionEpoch !== epoch || !owner.value) return;
+        captionPhase.value = 'hidden';
+        enteringVisible.value = true;
+        // Caption delay is measured from image fade start, NOT its completion.
+        captionTimer = setTimeout(() => {
+          captionTimer = null;
+          if (mounted && motionEpoch === epoch) captionPhase.value = 'visible';
+        }, HERO_CAPTION_START_DELAY_MS);
+        fadeTimer = setTimeout(() => {
+          fadeTimer = null;
+          if (mounted && motionEpoch === epoch && transitioning.value) {
+            console.warn('HERO_DISSOLVE_TRANSITIONEND_TIMEOUT', epoch);
+          }
+          finishTransition(epoch);
+        }, HERO_DISSOLVE_DURATION_MS + 96); // Missing transitionend watchdog.
+        syncAutoplay();
+      });
+    });
   });
-}, { flush: 'post' });
-watch(canPlay, syncAutoplay, { flush: 'sync' });
-watch(autoplayLease, syncAutoplay, { flush: 'sync' });
+}
+function onLayerTransitionEnd(event: TransitionEvent, slide: HeroCarouselSlot): void {
+  if (event.target !== event.currentTarget || event.propertyName !== 'opacity' ||
+      slide.order !== selectedIndex.value || !transitioning.value || !enteringVisible.value) return;
+  // The previous image is released only after the incoming opacity transition ends.
+  finishTransition(motionEpoch);
+}
+function layerPhase(index: number) {
+  return heroDissolveLayerPhase(index, selectedIndex.value, leavingIndex.value, enteringVisible.value);
+}
+function navigate(direction: HeroDirection): void {
+  if (!owner.value || !ready.value || loadFault.value || !pageVisible.value) return;
+  const base = pendingIndex.value ?? selectedIndex.value;
+  requestTransition(nextHeroDissolveIndex(base, direction, slides.value.length), 'manual');
+}
+function onKeydown(event: KeyboardEvent): void {
+  if (!owner.value || event.altKey || event.ctrlKey || event.metaKey) return;
+  switch (event.key) {
+    case 'ArrowRight': event.preventDefault(); navigate('next'); return;
+    case 'ArrowLeft': event.preventDefault(); navigate('previous'); return;
+  }
+}
+function onSwipeStart(event: PointerEvent): void {
+  if (event.pointerType !== 'touch' || !event.isPrimary || !owner.value || !ready.value) return;
+  touchStart = {pointerId:event.pointerId, x:event.clientX, y:event.clientY};
+}
+function onSwipeEnd(event: PointerEvent): void {
+  const start = touchStart;
+  touchStart = null;
+  if (!start || start.pointerId !== event.pointerId || event.pointerType !== 'touch') return;
+  const direction = heroDissolveSwipeDirection(event.clientX - start.x, event.clientY - start.y);
+  if (direction !== null) navigate(direction);
+}
+function onSwipeCancel(): void { touchStart = null; }
 
 function eventIsCurrent(node: EventTarget | null, slot: HeroCarouselSlot): node is HTMLImageElement {
   return node instanceof HTMLImageElement &&
@@ -138,19 +235,20 @@ function eventIsCurrent(node: EventTarget | null, slot: HeroCarouselSlot): node 
 function decodeImage(img: HTMLImageElement, slot: HeroCarouselSlot): void {
   if (!img.complete || img.naturalWidth <= 0 || !eventIsCurrent(img, slot)) return;
   const key = imageKey(slot);
-  if (loadedKeys.value.has(key) || decodingKeys.has(key)) return;
-  decodingKeys.add(key);
-  // decode() resolves after the browser has a paint-ready decoded bitmap.
+  const revision = sourceRevision.value;
+  const decodingKey = `${revision}|${key}`;
+  if (loadedKeys.value.has(key) || decodingKeys.has(decodingKey)) return;
+  decodingKeys.add(decodingKey);
   const decoded = typeof img.decode === 'function' ? img.decode() : Promise.resolve();
   void decoded.then(() => {
-    decodingKeys.delete(key);
-    if (!mounted || !img.isConnected || !eventIsCurrent(img, slot)) return;
+    decodingKeys.delete(decodingKey);
+    if (!mounted || revision !== sourceRevision.value || !img.isConnected || !eventIsCurrent(img, slot)) return;
     const next = new Set(loadedKeys.value);
     next.add(key);
     loadedKeys.value = next;
   }).catch(error => {
-    decodingKeys.delete(key);
-    if (!mounted || !img.isConnected || !eventIsCurrent(img, slot)) return;
+    decodingKeys.delete(decodingKey);
+    if (!mounted || revision !== sourceRevision.value || !img.isConnected || !eventIsCurrent(img, slot)) return;
     loadFault.value = `HERO_CAROUSEL_IMAGE_DECODE_FAILED:${slot.imageId}`;
     console.error(loadFault.value, error);
   });
@@ -187,12 +285,23 @@ watch([owner, ready, loadFault, sourceRevision], () => {
   });
 }, { flush: 'post' });
 watch(sourceRevision, () => {
-  // A late load from the previous Publication cannot admit a new image generation.
+  // A late decode from a previous publication never admits the new generation.
+  settleMotion();
+  clearAutoplay();
   loadedKeys.value = new Set();
   decodingKeys.clear();
   loadFault.value = null;
   void nextTick().then(() => { if (mounted) reconcileLoadedImages(); });
 }, { flush: 'post' });
+watch([owner, pageVisible, reducedMotion, loadFault], () => {
+  if (!owner.value || !pageVisible.value || reducedMotion.value || loadFault.value) {
+    settleMotion();
+    onSwipeCancel();
+  }
+  syncAutoplay();
+}, { flush: 'sync' });
+watch(canPlay, syncAutoplay, { flush: 'sync' });
+watch(autoplayLease, syncAutoplay, { flush: 'sync' });
 
 function updateOwner(): void {
   if (!mounted || !root.value || !desktopQuery || !reducedQuery) return;
@@ -200,7 +309,6 @@ function updateOwner(): void {
   const semantic = Boolean(root.value.closest('.smd-home--semantic-reflow'));
   const match = (figma && desktopQuery.matches) || (semantic && !desktopQuery.matches);
   const rect = root.value.getBoundingClientRect();
-  // CSS hides the other renderer. A hidden component never starts an independent timer.
   owner.value = match && rect.width > 0 && rect.height > 0 &&
     getComputedStyle(root.value).visibility !== 'hidden';
   reducedMotion.value = reducedQuery.matches;
@@ -217,40 +325,12 @@ function onPointerLeave(event: PointerEvent): void {
   if (event.pointerType === 'mouse') hovered.value = false;
 }
 function onFocusIn(event: FocusEvent): void {
-  // Keyboard focus pauses autoplay. A mouse click must not leave a stuck focus latch.
   const target = event.target;
   focused.value = target instanceof HTMLElement && target.matches(':focus-visible');
 }
 function onFocusOut(event: FocusEvent): void {
   const next = event.relatedTarget;
   if (!root.value || !(next instanceof Node) || !root.value.contains(next)) focused.value = false;
-}
-function navigate(direction: 'previous' | 'next'): void {
-  const api = emblaApi.value;
-  if (!owner.value || !api || !ready.value || loadFault.value) return;
-  switch (direction) {
-    case 'previous':
-      api.scrollPrev(reducedMotion.value);
-      break;
-    case 'next':
-      api.scrollNext(reducedMotion.value);
-      break;
-  }
-  // Reset only an active timer. Paused-by-hover/focus autoplay resumes via syncAutoplay.
-  if (autoplay.isPlaying()) autoplay.reset();
-}
-function onKeydown(event: KeyboardEvent): void {
-  if (!owner.value || !emblaApi.value || event.altKey || event.ctrlKey || event.metaKey) return;
-  switch (event.key) {
-    case 'ArrowRight':
-      event.preventDefault();
-      emblaApi.value.scrollNext(reducedMotion.value);
-      break;
-    case 'ArrowLeft':
-      event.preventDefault();
-      emblaApi.value.scrollPrev(reducedMotion.value);
-      break;
-  }
 }
 onMounted(() => {
   mounted = true;
@@ -275,11 +355,10 @@ onMounted(() => {
 });
 onBeforeUnmount(() => {
   mounted = false;
-  if (emblaApi.value?.plugins()?.autoplay && autoplay.isPlaying()) autoplay.stop();
+  clearAutoplay();
+  settleMotion();
   if (autoplayLease.value === instanceId) autoplayLease.value = null;
   decodingKeys.clear();
-  emblaApi.value?.off('select', onSelected);
-  emblaApi.value?.off('reInit', onReInit);
   intersectionObserver?.disconnect();
   resizeObserver?.disconnect();
   desktopQuery?.removeEventListener('change', updateOwner);
@@ -291,18 +370,24 @@ onBeforeUnmount(() => {
 <template>
   <div ref="root" class="smd-hero-carousel"
     :data-hero-revision="HERO_CAROUSEL_REVISION"
+    data-hero-motion="dissolve-r2"
     :data-hero-owner="owner ? 'active' : 'inactive'"
     :data-hero-selected-index="selectedIndex"
     :data-hero-delay-ms="HERO_CAROUSEL_DELAY_MS"
     :data-hero-ready="ready ? 'true' : 'false'"
+    :data-hero-caption-phase="captionPhase"
+    :data-hero-transitioning="transitioning ? 'true' : 'false'"
     :data-hero-fault="loadFault ?? undefined"
     role="region" aria-roledescription="carousel" aria-label="시공 현장 이미지"
     tabindex="0" @keydown="onKeydown" @pointerenter="onPointerEnter"
     @pointerleave="onPointerLeave" @focusin="onFocusIn" @focusout="onFocusOut">
-    <div :id="viewportId" ref="emblaRef" class="smd-hero-carousel__viewport">
+    <div :id="viewportId" class="smd-hero-carousel__viewport"
+      @pointerdown="onSwipeStart" @pointerup="onSwipeEnd" @pointercancel="onSwipeCancel">
       <div class="smd-hero-carousel__container">
         <figure v-for="slide in slides" :key="`${slide.slotId}:${slide.src}`"
           class="smd-hero-carousel__slide" :data-hero-slot-id="slide.slotId"
+          :data-hero-layer-state="layerPhase(slide.order)"
+          @transitionend="onLayerTransitionEnd($event, slide)"
           :aria-hidden="slide.order !== selectedIndex"
           :style="{
             '--hero-focal-x': `${slide.focalPoint.xPercent}%`,
@@ -315,23 +400,26 @@ onBeforeUnmount(() => {
         </figure>
       </div>
     </div>
-    <button type="button" class="smd-hero-carousel__control smd-hero-carousel__control--previous"
-      data-hero-carousel-action="previous" aria-label="이전 이미지"
-      :aria-controls="viewportId" :disabled="!owner || !ready || Boolean(loadFault)"
-      @click.stop="navigate('previous')">
-      <svg viewBox="0 0 24 24" width="24" height="24" fill="none"
-        stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M15 18l-6-6 6-6" />
-      </svg>
-    </button>
-    <button type="button" class="smd-hero-carousel__control smd-hero-carousel__control--next"
-      data-hero-carousel-action="next" aria-label="다음 이미지"
-      :aria-controls="viewportId" :disabled="!owner || !ready || Boolean(loadFault)"
-      @click.stop="navigate('next')">
-      <svg viewBox="0 0 24 24" width="24" height="24" fill="none"
-        stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="m9 18 6-6-6-6" />
-      </svg>
-    </button>
+
+    <div
+      class="smd-hero-carousel__pagination"
+      role="group"
+      aria-label="히어로 이미지 선택"
+    >
+      <button
+        v-for="slide in slides"
+        :key="slide.slotId"
+        type="button"
+        class="smd-hero-carousel__dot"
+        :class="{
+          'is-active': slide.order === selectedIndex
+        }"
+        :aria-label="`${slide.order + 1}번 이미지`"
+        :aria-pressed="slide.order === selectedIndex"
+        :aria-controls="viewportId"
+        :disabled="!owner || !ready || Boolean(loadFault)"
+        @click.stop="requestTransition(slide.order, 'manual')"
+      />
+    </div>
   </div>
 </template>

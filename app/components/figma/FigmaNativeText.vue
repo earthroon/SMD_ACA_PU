@@ -9,7 +9,7 @@ import {
   deriveFigmaTextPaintWindow, ZERO_FIGMA_TEXT_GROWTH,
   type FigmaTextPaintGrowth,
 } from '~/utils/figma-native-text-paint';
-
+import {homeBenefitsVisibleText} from '~/utils/homeBenefitsCopyPresentation';
 const props = defineProps<{nodeKey:string; width:number;height:number}>();
 const original = computed(() => figmaScene.texts[props.nodeKey]);
 const trainingPaintWidth = computed(() => homeTrainingR5PaintWidth(props.nodeKey, props.width));
@@ -21,7 +21,18 @@ const visibleRuns = computed(() => {
   (original.value?.runs ?? []).map(run => {
     const sized = visual.value ? {...run,style:{...run.style,
       fontSize:`${visual.value.fontSize}px`,letterSpacing:`${visual.value.letterSpacing}px`}} : run;
-    const displayed = homeVisibleFilmText(props.nodeKey, homeVisibleBrandText(props.nodeKey, run.characters));
+
+const displayed = homeBenefitsVisibleText(
+  props.nodeKey,
+  homeVisibleFilmText(
+    props.nodeKey,
+    homeVisibleBrandText(
+      props.nodeKey,
+      run.characters,
+    ),
+  ),
+);
+
     return displayed === run.characters ? sized : {...sized, characters: displayed};
   }),
   );

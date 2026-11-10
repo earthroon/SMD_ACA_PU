@@ -6,11 +6,16 @@ import { homeFilmAssets, type FilmImageId } from './home-film.ts';
 
 export const HERO_CAROUSEL_REVISION = 'SMD-HOME-HERO-CAROUSEL-R1-CF1-CF3' as const;
 export const HERO_CAROUSEL_DELAY_MS = 3000 as const;
+/** R2 motion timing; image fade start is the caption delay's T=0 authority. */
+export const HERO_DISSOLVE_DURATION_MS = 700 as const;
+export const HERO_CAPTION_START_DELAY_MS = 20 as const;
+export const HERO_CAPTION_FADE_MS = 420 as const;
+export const HERO_CAPTION_RISE_PX = 12 as const;
 const HERO_IMAGE_IDS = ['hero-1', 'hero-2', 'hero-3'] as const satisfies readonly FilmImageId[];
 
 export type HeroFocalPoint = Readonly<{ xPercent: number; yPercent: number }>;
 export type HeroMediaResolution =
-  | Readonly<{ kind: 'local' }>
+  | Readonly<{ kind: 'local'; src?: string; alt?: string; width?: number; height?: number }>
   | Readonly<{
       kind: 'published'; publicationId: string; assetId: string;
       src: string; alt: string; width: number; height: number;
@@ -61,12 +66,16 @@ export function resolveHeroCarouselSlots(
       case 'unbound':
         throw new Error(`STANDALONE_FILM_IMAGE_NOT_PUBLISHED:${asset.id}`);
       case 'local': {
-        if (!asset.src || !asset.alt || !validDimension(asset.width) || !validDimension(asset.height)) {
+        const src = binding.src ?? asset.src;
+        const alt = binding.alt ?? asset.alt;
+        const width = binding.width ?? asset.width;
+        const height = binding.height ?? asset.height;
+        if (!src || !alt || !validDimension(width) || !validDimension(height)) {
           throw new Error(`HERO_CAROUSEL_SOURCE_INVALID:${asset.id}`);
         }
         return {
-          slotId: asset.id, imageId: asset.id, order, src: asset.src, alt: asset.alt,
-          width: asset.width, height: asset.height, focalPoint,
+          slotId: asset.id, imageId: asset.id, order, src, alt,
+          width, height, focalPoint,
           publicationId: null, assetId: null,
         };
       }
