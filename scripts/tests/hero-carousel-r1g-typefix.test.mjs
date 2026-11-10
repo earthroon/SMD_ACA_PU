@@ -23,7 +23,7 @@ const request = between(intro, '  function requestBufferedIntent(', '  function 
 test('R1G no manufactured Event or unsafe casts in decode completion', () => {
   assert.doesNotMatch(carousel, /\{\s*currentTarget:\s*img\s*\}\s+as\s+(?:unknown\s+as\s+)?Event/);
   assert.match(carousel, /function eventIsCurrent\(node: EventTarget \| null, slot: HeroCarouselSlot\): node is HTMLImageElement/);
-  assert.match(carousel, /if \(!mounted \|\| !img\.isConnected \|\| !eventIsCurrent\(img, slot\)\) return/);
+  assert.match(carousel, /revision !== sourceRevision\.value \|\| !img\.isConnected \|\| !eventIsCurrent\(img, slot\)\) return/);
   assert.match(carousel, /else if \(eventIsCurrent\(img, slot\)\) reportImageLoadFailure\(slot\)/);
 });
 test('R1G current-element check requires image element, matching src and active publication', () => {
@@ -69,9 +69,9 @@ test('R1G buffered real intent triggers once, respects wheel and idle guard', ()
 });
 test('R1G media gate and carousel control policies preserved', () => {
   assert.match(carousel, /const decoded = typeof img\.decode === 'function' \? img\.decode\(\)/);
-  assert.match(carousel, /delay: HERO_CAROUSEL_DELAY_MS,/);
-  assert.match(carousel, /jump: false,/);
-  assert.match(carousel, /autoplay\.play\(false\)/);
+  assert.match(carousel, /\}, HERO_CAROUSEL_DELAY_MS\)/);
+  assert.match(carousel, /\}, HERO_DISSOLVE_DURATION_MS \+ 96\)/);
+  assert.match(carousel, /autoplayLease\.value === instanceId/);
   assert.match(carousel, /@click\.stop="navigate\('previous'\)"/);
   assert.match(carousel, /@click\.stop="navigate\('next'\)"/);
 });

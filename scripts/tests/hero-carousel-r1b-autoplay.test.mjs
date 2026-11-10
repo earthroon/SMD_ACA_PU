@@ -1,6 +1,5 @@
-/** R1B: Embla 8.6 active=false plugin initialization regression.
- * Executes the actual syncAutoplay/onReInit bodies extracted from the Vue SFC
- * with mocked Embla API lifecycles. Not a browser or physical execution test.
+/** Historical R1B lease regression, migrated for R2 timer ownership.
+ * VM-executes the actual syncAutoplay() body, never mocks a different algorithm.
  */
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
@@ -8,87 +7,60 @@ import {readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import vm from 'node:vm';
-
 const root=resolve(fileURLToPath(new URL('../../',import.meta.url)));
 const source=readFileSync(resolve(root,'app/components/home/HomeHeroCarousel.vue'),'utf8');
-const take=(start,end)=>{
-  const i=source.indexOf(start), j=source.indexOf(end,i+start.length);
-  assert.ok(i>=0&&j>i,`HERO_CAROUSEL_RUNTIME_EXTRACT_FAILED: ${start}`);
-  return source.slice(i,j);
-};
-const sync=take('function syncAutoplay(): void {','function onSelected(').replace('function syncAutoplay(): void {','function syncAutoplay() {');
-const reinit=take('function onReInit(api: EmblaInstance): void {','watch(emblaApi,')
-  .replace('function onReInit(api: EmblaInstance): void {','function onReInit(api) {');
-
-function harness({pluginPresent=false,canPlay=true,owner=true,lease=null,apiPresent=true,playing=false}={}){
+const start=source.indexOf('function syncAutoplay(): void {');
+const end=source.indexOf('function finishTransition(',start);
+assert.ok(start>=0&&end>start,'HERO_R2_SYNC_AUTOPLAY_EXTRACTION_FAILED');
+const code=source.slice(start,end).replace('function syncAutoplay(): void {','function syncAutoplay() {');
+function harness({mounted=true,canPlay=true,lease=null,count=3}={}){
   const trace=[];
-  let isPlaying=playing;
-  const autoplay={
-    isPlaying:()=>isPlaying,
-    play:(restart)=>{trace.push(['play',restart]);isPlaying=true;},
-    stop:()=>{trace.push(['stop']);isPlaying=false;},
-  };
-  const api=apiPresent?{plugins:()=>pluginPresent?{autoplay}:undefined}:undefined;
   const env={
-    emblaApi:{value:api},canPlay:{value:canPlay},autoplay,autoplayLease:{value:lease},
-    instanceId:'case-r1b',owner:{value:owner},alignToSelection:()=>trace.push(['align']),
+    mounted,canPlay:{value:canPlay},slides:{value:Array.from({length:count},(_,i)=>({order:i}))},
+    autoplayLease:{value:lease},instanceId:'instance-r2',autoplayTimer:null,
+    clearAutoplay(){trace.push(['clear']);env.autoplayTimer=null;},
+    setTimeout(callback,ms){trace.push(['schedule',ms]);return {callback};},
+    HERO_CAROUSEL_DELAY_MS:3000,
+    selectedIndex:{value:0},
+    nextHeroDissolveIndex:(i)=>i+1,
+    requestTransition:(i,reason)=>trace.push(['go',i,reason]),
   };
-  const f=vm.runInNewContext(`${sync}\n${reinit}\n({syncAutoplay,onReInit})`,env);
-  return { ...f, env, autoplay, api, trace };
+  const api=vm.runInNewContext(`${code}\nsyncAutoplay`,env);
+  return {api,env,trace};
 }
-
-test('R1B source: both plugin reads are guarded through plugins() result',()=>{
-  assert.match(source,/Boolean\(api\?\.plugins\(\)\?\.autoplay\)/);
-  assert.match(source,/emblaApi\.value\?\.plugins\(\)\?\.autoplay/);
-  assert.doesNotMatch(source,/\?\.plugins\(\)\.autoplay/);
+test('R1B/R2: hidden, unmounted or single-image owner never creates a timer',()=>{
+  for(const args of [{mounted:false},{canPlay:false},{count:1}]){
+    const h=harness(args);
+    h.api();
+    assert.equal(h.env.autoplayTimer,null);
+    assert.equal(h.env.autoplayLease.value,null);
+    assert.deepEqual(h.trace,[['clear']]);
+  }
 });
-
-test('R1B model: null Embla API is a pending state, no throw or lease',()=>{
-  const h=harness({apiPresent:false,canPlay:true});
-  assert.doesNotThrow(()=>h.syncAutoplay());
+test('R1B/R2: active owner claims exactly one 3000ms timer',()=>{
+  const h=harness();
+  h.api();
+  h.api();
+  assert.deepEqual(h.trace,[['schedule',3000]]);
+  assert.equal(h.env.autoplayLease.value,'instance-r2');
+  h.env.autoplayTimer.callback();
+  assert.deepEqual(h.trace.slice(-1),[['go',1,'auto']]);
+});
+test('R1B/R2: another responsive instance lease is not stolen',()=>{
+  const h=harness({lease:'other-instance'});
+  h.api();
+  assert.equal(h.env.autoplayLease.value,'other-instance');
+  assert.deepEqual(h.trace,[['clear']]);
+});
+test('R1B/R2: losing eligibility clears timer before lease release',()=>{
+  const h=harness({canPlay:false,lease:'instance-r2'});
+  h.env.autoplayTimer={callback:()=>{}};
+  h.api();
+  assert.equal(h.env.autoplayTimer,null);
   assert.equal(h.env.autoplayLease.value,null);
-  assert.deepEqual(h.trace,[]);
+  assert.deepEqual(h.trace,[['clear']]);
 });
-
-test('R1B model: active=false Embla returns undefined plugins()',()=>{
-  const h=harness({pluginPresent:false,canPlay:false});
-  assert.doesNotThrow(()=>h.syncAutoplay());
-  assert.equal(h.env.autoplayLease.value,null);
-  assert.deepEqual(h.trace,[]);
-});
-
-test('R1B model: owner transition before plugin init does not throw or claim lease',()=>{
-  const h=harness({pluginPresent:false,canPlay:true});
-  assert.doesNotThrow(()=>h.syncAutoplay());
-  assert.equal(h.env.autoplayLease.value,null);
-});
-
-test('R1B model: after reInit plugin is registered, one timer starts',()=>{
-  const h=harness({pluginPresent:true,canPlay:true});
-  h.onReInit(h.api);
-  assert.equal(h.env.autoplayLease.value,'case-r1b');
-  assert.deepEqual(h.trace.map(x=>x[0]),['align','play']);
-  assert.equal(h.trace[1][1],false);
-  h.syncAutoplay();
-  assert.deepEqual(h.trace.map(x=>x[0]),['align','play']);
-});
-
-test('R1B model: active owner without plugin after reInit errors explicitly',()=>{
-  const h=harness({pluginPresent:false,owner:true,canPlay:true});
-  assert.throws(()=>h.onReInit(h.api),/HERO_CAROUSEL_AUTOPLAY_PLUGIN_UNAVAILABLE/);
-  assert.equal(h.env.autoplayLease.value,null);
-});
-
-test('R1B model: losing visibility stops timer and releases lease',()=>{
-  const h=harness({pluginPresent:true,canPlay:false,lease:'case-r1b',playing:true});
-  h.syncAutoplay();
-  assert.deepEqual(h.trace,[['stop']]);
-  assert.equal(h.env.autoplayLease.value,null);
-});
-
-test('R1B model: other instance lease is not stolen',()=>{
-  const h=harness({pluginPresent:true,canPlay:true,lease:'another-instance'});
-  h.syncAutoplay();
-  assert.equal(h.env.autoplayLease.value,'another-instance');
-  assert.deepEqual(h.trace,[]);
+test('R1B/R2: unmount path cannot reacquire released lease',()=>{
+  assert.match(source,/if \(!mounted \|\| !canPlay\.value \|\| slides\.value\.length < 2\)/);
+  assert.match(source,/onBeforeUnmount\(\(\) => \{[\s\S]*?mounted = false;[\s\S]*?clearAutoplay\(\)/);
 });

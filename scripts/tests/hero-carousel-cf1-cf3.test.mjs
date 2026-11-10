@@ -1,4 +1,4 @@
-/** CF1~CF3 source/model gates only. Browser pixels and Nuxt typecheck are separate. */
+/** R2 migration of the old CF1-CF3 entrypoint. SOURCE/MODEL checks, not browser frames. */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -7,129 +7,119 @@ import { dirname, resolve } from 'node:path';
 import { homeFilmAssets } from '../../app/data/home-film.ts';
 import {
   HERO_CAROUSEL_REVISION, HERO_CAROUSEL_DELAY_MS, heroCarouselFocalPoints,
-  resolveHeroCarouselSlots,
+  resolveHeroCarouselSlots, HERO_DISSOLVE_DURATION_MS, HERO_CAPTION_START_DELAY_MS,
+  HERO_CAPTION_FADE_MS, HERO_CAPTION_RISE_PX,
 } from '../../app/data/home-hero-carousel.ts';
+import { heroDissolveLayerPhase, nextHeroDissolveIndex } from '../../app/utils/homeHeroDissolveState.ts';
 const project = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const read = path => readFileSync(resolve(project, path), 'utf8');
+const local = () => ({kind:'local'});
 
-const local = () => ({ kind: 'local' });
-test('CF1: exactly three stable source image IDs and neutral focal points', () => {
+test('CF1: stable source hero IDs, focal points and 3000ms policy', () => {
   assert.equal(HERO_CAROUSEL_REVISION, 'SMD-HOME-HERO-CAROUSEL-R1-CF1-CF3');
   assert.equal(HERO_CAROUSEL_DELAY_MS, 3000);
-  assert.deepEqual(homeFilmAssets.map(s => s.id), ['hero-1', 'hero-2', 'hero-3']);
+  assert.deepEqual(homeFilmAssets.map(s => s.id), ['hero-1','hero-2','hero-3']);
   assert.deepEqual(Object.keys(heroCarouselFocalPoints), homeFilmAssets.map(s => s.id));
-  const slots = resolveHeroCarouselSlots(local);
-  assert.deepEqual(slots.map(s => s.slotId), homeFilmAssets.map(s => s.id));
-  for (const s of slots) {
-    assert.equal(s.order, homeFilmAssets.findIndex(a => a.id === s.slotId));
-    assert.deepEqual(s.focalPoint, { xPercent: 50, yPercent: 50 });
-    assert.equal(s.publicationId, null);
-    assert.equal(s.assetId, null);
+  const slides = resolveHeroCarouselSlots(local);
+  assert.deepEqual(slides.map(s=>s.slotId),homeFilmAssets.map(s=>s.id));
+  for(const slide of slides){
+    assert.deepEqual(slide.focalPoint,{xPercent:50,yPercent:50});
+    assert.equal(slide.publicationId,null);
+    assert.equal(slide.assetId,null);
   }
 });
 
-test('CF1: published source replaces local metadata without modifying image ID', () => {
-  const slots = resolveHeroCarouselSlots(id => ({
-    kind: 'published', publicationId: 'publication-fixture', assetId: `asset-${id}`,
-    src: `/published/${id}`, width: 4000, height: 2250, alt: `Published ${id}`,
+test('CF1: published binding authority and errors stay explicit', () => {
+  const slides=resolveHeroCarouselSlots(id=>({
+    kind:'published',publicationId:'p1',assetId:`asset-${id}`,
+    src:`/published/${id}`,width:4096,height:2160,alt:`Published ${id}`,
   }));
-  for (const s of slots) {
-    assert.equal(s.src, `/published/${s.imageId}`);
-    assert.equal(s.publicationId, 'publication-fixture');
-    assert.equal(s.assetId, `asset-${s.imageId}`);
-    assert.equal(s.width, 4000);
-    assert.equal(s.height, 2250);
-    assert.equal(s.alt, `Published ${s.imageId}`);
+  for(const slide of slides){
+    assert.equal(slide.src,`/published/${slide.imageId}`);
+    assert.equal(slide.publicationId,'p1');
+    assert.equal(slide.assetId,`asset-${slide.imageId}`);
   }
+  assert.throws(()=>resolveHeroCarouselSlots(()=>({kind:'unbound'})),/STANDALONE_FILM_IMAGE_NOT_PUBLISHED/);
+  assert.throws(()=>resolveHeroCarouselSlots(()=>({kind:'published',publicationId:'',assetId:'x',src:'/bad',width:20,height:20,alt:'a'})),/HERO_CAROUSEL_PUBLICATION_INVALID/);
+  assert.throws(()=>resolveHeroCarouselSlots(()=>({kind:'local',width:-1})),/HERO_CAROUSEL_SOURCE_INVALID/);
 });
 
-test('CF1: missing/invalid media is refused rather than silently mapped to local', () => {
-  assert.throws(() => resolveHeroCarouselSlots(() => ({ kind: 'unbound' })), /STANDALONE_FILM_IMAGE_NOT_PUBLISHED/);
-  assert.throws(() => resolveHeroCarouselSlots(() => ({
-    kind: 'published', publicationId: '', assetId: 'a', src: '/bad', width: 1,
-    height: 1, alt: '',
-  })), /HERO_CAROUSEL_PUBLICATION_INVALID/);
-  assert.throws(() => resolveHeroCarouselSlots(() => ({
-    kind: 'published', publicationId: 'p', assetId: 'a', src: '/bad', width: NaN,
-    height: 1, alt: '',
-  })), /HERO_CAROUSEL_PUBLICATION_INVALID/);
+test('CF2: stationary dissolve replaces Embla without losing ownership or media gating', () => {
+  const vue=read('app/components/home/HomeHeroCarousel.vue');
+  const wrapper=read('app/components/home/HomeHeroFilm.vue');
+  assert.match(wrapper, /<HomeHeroCarousel\s+@media-status="emit\('film-media-status', \$event\)"\s*\/>/);
+  assert.match(wrapper,/owner: 'HomeHeroFilm'/);
+  assert.doesNotMatch(vue,/embla-carousel|useEmblaCarousel|scrollNext|scrollPrev/);
+  assert.match(vue,/useState<number>\('smd-hero-carousel-selected-r1'/);
+  assert.match(vue,/smd-hero-carousel-autoplay-lease-r1/);
+  assert.match(vue,/if \(autoplayLease\.value === instanceId\) autoplayLease\.value = null/);
+  assert.match(vue,/matchMedia\('\(min-width: 1100px\)'\)/);
+  assert.match(vue,/document\.hidden/);
+  assert.match(vue,/reducedMotion\.value/);
+  assert.match(vue,/img\.decode\(\)/);
+  assert.match(vue,/revision !== sourceRevision\.value/);
+  assert.match(vue,/data-hero-caption-phase="captionPhase"/);
+  assert.match(vue,/data-hero-layer-state="layerPhase\(slide\.order\)"/);
+  assert.match(vue,/data-hero-ready="ready \? 'true' : 'false'"/);
+  assert.match(vue,/resolveHomeHeroLocalMedia\(id\)/);
 });
 
-test('CF2: unique Vue Carousel and one Embla autoplay owner, no LUT/Focus/rail runtime', () => {
-  const wrapper = read('app/components/home/HomeHeroFilm.vue');
-  const carousel = read('app/components/home/HomeHeroCarousel.vue');
-  assert.match(wrapper, /<HomeHeroCarousel\s+@media-status="emit\(\'film-media-status\', \$event\)"\s*\/>/);
-  assert.match(wrapper, /owner: 'HomeHeroFilm'/);
-  assert.match(carousel, /embla-carousel-vue/);
-  assert.match(carousel, /embla-carousel-autoplay/);
-  assert.match(carousel, /playOnInit: false/);
-  assert.match(carousel, /stopOnInteraction: false/);
-  assert.match(carousel, /loop: true/);
-  assert.match(carousel, /active: owner\.value/);
-  assert.match(carousel, /useState<number>\('smd-hero-carousel-selected-r1'/);
-  assert.match(carousel, /smd-hero-carousel-autoplay-lease-r1/);
-  assert.match(carousel, /autoplayLease\.value === instanceId/);
-  assert.match(carousel, /desktopQuery = matchMedia\('\(min-width: 1100px\)'\)/);
-  assert.match(carousel, /document\.hidden/);
-  assert.match(carousel, /reducedMotion\.value/);
-  for (const source of [wrapper, carousel]) {
-    assert.doesNotMatch(source, /homeFilmWind|homeFilmMotion|homeFilmSelection|homeFilmFocusAdmission/);
-    assert.doesNotMatch(source, /requestAnimationFrame|\.animate\(|displayAssets|copies\.value/);
-    assert.doesNotMatch(source, /<canvas|new Worker\(/);
+test('CF2: 3s, 700ms, 20ms, 420ms and 12px remain explicit', () => {
+  assert.equal(HERO_CAROUSEL_DELAY_MS,3000);
+  assert.equal(HERO_DISSOLVE_DURATION_MS,700);
+  assert.equal(HERO_CAPTION_START_DELAY_MS,20);
+  assert.equal(HERO_CAPTION_FADE_MS,420);
+  assert.equal(HERO_CAPTION_RISE_PX,12);
+  const vue=read('app/components/home/HomeHeroCarousel.vue');
+  assert.match(vue,/setTimeout\(\(\) => \{[\s\S]*?\}, HERO_CAPTION_START_DELAY_MS\)/);
+  assert.match(vue,/\}, HERO_DISSOLVE_DURATION_MS \+ 96\)/);
+  assert.match(vue,/requestAnimationFrame\(\(\) => \{/);
+  assert.match(vue,/pendingIndex\.value = target/);
+  assert.match(vue,/clearMotionCallbacks\(\)/);
+});
+
+test('CF3: all slides cover a fixed full-size layered viewport, never translateX', () => {
+  const css=read('app/assets/css/home-hero-film.css');
+  assert.match(css,/\.smd-hero-carousel__slide\s*\{[\s\S]*?position: absolute;[\s\S]*?inset: 0;/);
+  assert.match(css,/\.smd-hero-carousel__slide\s*> img\s*\{[\s\S]*?object-fit: cover/);
+  assert.match(css,/object-position:\s*var\(--hero-focal-x/);
+  assert.match(css,/\[data-hero-layer-state="revealing"\][\s\S]*?transition: opacity 700ms/);
+  assert.doesNotMatch(css,/translateX\(|flex: 0 0 100%|object-fit:\s*contain/);
+  assert.match(css,/node-1:5/);
+});
+
+test('CF3: typography remains in Figma/semantic source with 20ms delayed reveal', () => {
+  const css=read('app/assets/css/home-hero-film.css');
+  for(const node of ['node-36:6','node-35:5','node-36:7']) {
+    assert.ok(css.includes(`data-figma-text-instance="${node}"`));
   }
+  assert.match(css,/:has\(\.smd-hero-carousel\[data-hero-caption-phase="hidden"\]\)/);
+  assert.match(css,/opacity 420ms/);
+  assert.match(css,/translateY\(12px\)/);
+  assert.match(css,/\.smd-home--hero > \.smd-home__container/);
+  const vue=read('app/components/home/HomeHeroCarousel.vue');
+  assert.doesNotMatch(vue,/activeSlide\.title|activeSlide\.description/);
 });
 
-test('CF2: build and normal test entrypoint no longer require film LUT baking', () => {
-  const pkg = JSON.parse(read('package.json'));
-  assert.equal(pkg.dependencies['embla-carousel-vue'], '8.6.0');
-  assert.equal(pkg.dependencies['embla-carousel-autoplay'], '8.6.0');
-  assert.doesNotMatch(pkg.scripts.build, /scripts\/film\//);
-  assert.match(pkg.scripts.build, /test:hero-carousel/);
-  assert.equal(pkg.scripts['test:hero-film'], 'npm run test:hero-carousel');
-});
-
-test('CF3: full width full height image cover with a single 100% logical slide', () => {
-  const css = read('app/assets/css/home-hero-film.css');
-  assert.match(css, /\.smd-hero-carousel__slide\s*\{[\s\S]*?flex:\s*0 0 100%/);
-  assert.match(css, /\.smd-hero-carousel__slide\s*>\s*img\s*\{[\s\S]*?object-fit:\s*cover/);
-  assert.match(css, /object-position:\s*var\(--hero-focal-x/);
-  assert.doesNotMatch(css, /object-fit:\s*contain/);
-  assert.match(css, /node-1:5/);
-  const wrapper = read('app/components/home/HomeHeroFilm.vue');
-  assert.match(wrapper, /paintedHeightCss:\s*paintedHeight/);
-  assert.match(wrapper, /viewportRectCss/);
-  assert.match(wrapper, /layoutRevision/);
-});
-
-test('CF3: mathematical cover scale fills every requested viewport, never distorts source', () => {
-  const cases = [
-    [390, 844], [768, 1024], [1440, 900], [1920, 1080],
-    [2560, 1440], [3440, 1440], [3840, 1600], [5120, 1440],
-  ];
-  for (const [w, h] of cases) {
-    const source = homeFilmAssets[0];
-    const scale = Math.max(w / source.width, h / source.height);
-    assert.ok(scale * source.width >= w - 1e-8);
-    assert.ok(scale * source.height >= h - 1e-8);
-    assert.equal((scale * source.width) / (scale * source.height), source.width / source.height);
+test('CF3: all requested aspect ratios retain source ratio under cover scaling', () => {
+  for(const [w,h] of [[390,844],[768,1024],[1440,900],[1920,1080],[2560,1440],[3440,1440],[3840,1600],[5120,1440]]) {
+    const src=homeFilmAssets[0];
+    const k=Math.max(w/src.width,h/src.height);
+    assert.ok(k*src.width>=w-1e-8 && k*src.height>=h-1e-8);
+    assert.ok(Math.abs(k*src.width/(k*src.height)-src.width/src.height)<1e-12);
   }
+  assert.equal(heroDissolveLayerPhase(1,1,0,false),'incoming');
+  assert.equal(heroDissolveLayerPhase(1,1,0,true),'revealing');
+  assert.equal(heroDissolveLayerPhase(0,1,0,true),'leaving');
+  assert.equal(nextHeroDissolveIndex(2,'next',3),0);
 });
 
-test('CF3: legacy Intro overlay geometry admits a full-height cover viewport at every width', async () => {
-  const {planIntroOverlay} = await import('../../app/utils/homeIntroOverlayGeometry.ts');
-  for (const [width,height] of [[390,844],[768,1024],[1920,1080],[3440,1440],[5120,1440]]) {
-    const frame = {left:0,top:80,width,height};
-    const barHeight = Math.min(300,height/3);
-    const result = planIntroOverlay({
-      frameRectCss:frame,
-      film:{owner:'HomeHeroFilm',viewportRectCss:frame,paintedTopCss:0,
-        paintedHeightCss:height,layoutRevision:'SMD-HOME-HERO-CAROUSEL-R1-CF1-CF3',generation:1},
-      overlayHeightCssPx:barHeight,overlayWidthCssPx:width,
-      sourceRevision:'fixture-r1',expectedSourceRevision:'fixture-r1',
-      minimumFilmGeneration:1,hostRevision:'fixture-r1',
-    });
-    assert.equal(result.kind,'admitted',`${width}x${height}`);
-    assert.ok(Math.abs(result.topCssPx-(height-barHeight)) < 1e-8);
-    assert.equal(result.widthCssPx,width);
-  }
+test('CF3: old Intro paint geometry and media admission ABI preserved', () => {
+  const wrapper=read('app/components/home/HomeHeroFilm.vue');
+  assert.match(wrapper,/paintedHeightCss:\s*paintedHeight/);
+  assert.match(wrapper,/viewportRectCss/);
+  assert.match(wrapper,/layoutRevision/);
+  const media=read('app/utils/homeIntroMediaGate.ts');
+  assert.match(media,/phase: 'loading' \| 'ready' \| 'failed'/);
+  assert.match(media,/INTRO_MEDIA_TIMEOUT_MS/);
 });

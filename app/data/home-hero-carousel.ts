@@ -6,6 +6,11 @@ import { homeFilmAssets, type FilmImageId } from './home-film.ts';
 
 export const HERO_CAROUSEL_REVISION = 'SMD-HOME-HERO-CAROUSEL-R1-CF1-CF3' as const;
 export const HERO_CAROUSEL_DELAY_MS = 3000 as const;
+/** R2 motion timing; image fade start is the caption delay's T=0 authority. */
+export const HERO_DISSOLVE_DURATION_MS = 700 as const;
+export const HERO_CAPTION_START_DELAY_MS = 20 as const;
+export const HERO_CAPTION_FADE_MS = 420 as const;
+export const HERO_CAPTION_RISE_PX = 12 as const;
 const HERO_IMAGE_IDS = ['hero-1', 'hero-2', 'hero-3'] as const satisfies readonly FilmImageId[];
 
 export type HeroFocalPoint = Readonly<{ xPercent: number; yPercent: number }>;
