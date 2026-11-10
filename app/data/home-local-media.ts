@@ -28,35 +28,35 @@ export const homeLocalMediaSlots: Readonly<
   },
 
   'home.benefits.01.image': {
-    src: null,
-    alt: '',
-    title: '',
-    width: null,
-    height: null,
+    src: '/media/home/r7-benefit-01.jpg',
+    alt: 'R6 카탈로그 디자인 시안 사진 01',
+    title: 'R6 카탈로그 디자인 시안 01',
+    width: 490,
+    height: 712,
   },
 
   'home.benefits.02.image': {
-    src: null,
-    alt: '',
-    title: '',
-    width: null,
-    height: null,
+    src: '/media/home/r7-benefit-02.jpg',
+    alt: 'R6 카탈로그 디자인 시안 사진 02',
+    title: 'R6 카탈로그 디자인 시안 02',
+    width: 410,
+    height: 708,
   },
 
   'home.benefits.03.image': {
-    src: null,
-    alt: '',
-    title: '',
-    width: null,
-    height: null,
+    src: '/media/home/r7-benefit-03.jpg',
+    alt: 'R6 카탈로그 디자인 시안 사진 03',
+    title: 'R6 카탈로그 디자인 시안 03',
+    width: 670,
+    height: 708,
   },
 
   'home.benefits.04.image': {
-    src: null,
-    alt: '',
-    title: '',
-    width: null,
-    height: null,
+    src: '/media/home/r7-benefit-04.jpg',
+    alt: 'R6 카탈로그 디자인 시안 사진 04',
+    title: 'R6 카탈로그 디자인 시안 04',
+    width: 1120,
+    height: 859,
   },
 
   'home.methods.01.image': {
@@ -107,11 +107,11 @@ export const homeHeroLocalMediaSlots: Readonly<
 > = {
   // HERO IMAGE 01
   'hero-1': {
-    src: '/media/home/hero-01.jpg',
+    src: '/media/home/r7-workshop.png',
     alt: homeFilmAssets[0].alt,
     title: homeFilmAssets[0].alt,
-    width: homeFilmAssets[0].width,
-    height: homeFilmAssets[0].height,
+    width: 1938,
+    height: 811,
   },
 
   // HERO IMAGE 02

@@ -3,7 +3,7 @@ export default defineNuxtConfig({
   devtools: { enabled: false },
   modules: ['@pinia/nuxt', 'motion-v/nuxt'],
   postcss: { plugins: { tailwindcss: {}, autoprefixer: {} } },
-  css: ['~/assets/css/main.css', '~/assets/css/catalogue-r7.css'],
+  css: ['~/assets/css/main.css', '~/assets/css/catalogue-r7.css', '~/assets/css/catalogue-r7-home.css', '~/assets/css/catalogue-r7-routes.css'],
   nitro: { preset: 'cloudflare-module' },
   app: {
     head: {

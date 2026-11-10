@@ -307,7 +307,8 @@ function updateOwner(): void {
   if (!mounted || !root.value || !desktopQuery || !reducedQuery) return;
   const figma = Boolean(root.value.closest('.smd-home--figma-scene'));
   const semantic = Boolean(root.value.closest('.smd-home--semantic-reflow'));
-  const match = (figma && desktopQuery.matches) || (semantic && !desktopQuery.matches);
+  const catalogue = Boolean(root.value.closest('.smd-r7-home'));
+  const match = catalogue || (figma && desktopQuery.matches) || (semantic && !desktopQuery.matches);
   const rect = root.value.getBoundingClientRect();
   owner.value = match && rect.width > 0 && rect.height > 0 &&
     getComputedStyle(root.value).visibility !== 'hidden';

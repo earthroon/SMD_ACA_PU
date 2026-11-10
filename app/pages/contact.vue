@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import CatalogueCover from '~/components/catalogue/CatalogueCover.vue';
+import CatalogueSheet from '~/components/catalogue/CatalogueSheet.vue';
 import {useSiteContent} from '~/composables/useSiteContent';
 import {useContentMode} from '~/composables/useContentMode';
 import { publicExternalActionsAllowed } from '~/utils/publicExternalActionPolicy';
@@ -25,6 +27,14 @@ const channels=computed(()=>{
 useSeoMeta({title:'상담 문의 | SMD 아카데미'});
 </script>
 <template>
+  <div class="smd-r7-route smd-r7-route--contact" data-r7-route-owner="contact" data-r7-hero="fullscreen">
+    <CatalogueCover page-id="contact" eyebrow="CONTACT / ENQUIRY" heading="상담신청"
+      description="아카데미 교육과정에 대해 문의하세요." />
+    <CatalogueSheet page-id="contact" section-id="content" :ordinal="2" :total="2"
+      variant="standard" fit="flow" label="CONTACT / ENQUIRY" heading-id="r7-contact-content" >
+      <div class="smd-r7-route__listing">
+        <h2 id="r7-contact-content">상담신청</h2>
+
   <StandaloneContactPage v-if="standalone" />
   <template v-else>
   <PageHero :eyebrow="pages?.contact.hero.eyebrow??''" :lede="pages?.contact.hero.ledeSegments.join(' ')"><template #title>{{ pages?.contact.hero.titleLines[0] }}<br />{{ pages?.contact.hero.titleLines[1] }}</template></PageHero>
@@ -34,4 +44,8 @@ useSeoMeta({title:'상담 문의 | SMD 아카데미'});
     <Reveal :delay="120"><ContactForm /></Reveal>
   </div></section>
   </template>
+
+      </div>
+    </CatalogueSheet>
+  </div>
 </template>

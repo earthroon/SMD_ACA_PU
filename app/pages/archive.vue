@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import CatalogueCover from '~/components/catalogue/CatalogueCover.vue';
+import CatalogueSheet from '~/components/catalogue/CatalogueSheet.vue';
 import { useSiteContent } from '~/composables/useSiteContent';
 import CmsSlot from '~/components/cms/CmsSlot.vue';
 import PageHero from '~/components/feature/PageHero.vue';
@@ -28,6 +30,14 @@ useSeoMeta({title:computed(()=>`${archiveNavigationLabel.value} | SMD 아카데�
 </script>
 
 <template>
+  <div class="smd-r7-route smd-r7-route--archive" data-r7-route-owner="archive" data-r7-hero="fullscreen">
+    <CatalogueCover page-id="archive" eyebrow="ARCHIVE / CLASS GALLERY" heading="수강갤러리"
+      description="실습 현장의 사진과 영상을 확인합니다." />
+    <CatalogueSheet page-id="archive" section-id="content" :ordinal="2" :total="2"
+      variant="standard" fit="flow" label="ARCHIVE / CLASS GALLERY" heading-id="r7-archive-content" >
+      <div class="smd-r7-route__listing">
+        <h2 id="r7-archive-content">수강갤러리</h2>
+
   <GalleryStandalonePreview v-if="localGalleryPreview" />
   <template v-else>
   <GalleryFrame2
@@ -51,4 +61,8 @@ useSeoMeta({title:computed(()=>`${archiveNavigationLabel.value} | SMD 아카데�
   <CmsSlot :nodes="c?.pageSlots.archive.beforeCta ?? []" />
   <GalleryCtaFrame3 v-if="localGalleryPreview || galleryV3" />
   <CtaBand v-else :title="pages?.archive.cta.title ?? ''" :link-label="pages?.archive.cta.label" external />
+
+      </div>
+    </CatalogueSheet>
+  </div>
 </template>

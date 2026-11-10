@@ -5,6 +5,7 @@ import { assertHomeBodyPlan } from '~/data/home-r2-composition';
 import { examineHomeLegacySlots } from '~/utils/homeR2Admission';
 import HomeBodyStage from '~/components/home/HomeBodyStage.vue';
 import HomeIntroStage from '~/components/home/HomeIntroStage.vue';
+import CatalogueHomeStage from '~/components/catalogue/CatalogueHomeStage.vue';
 import {figmaScene} from '~/data/figma-r2-scene.generated';
 import StatementSection from '~/components/home/StatementSection.vue';
 import TeachSection from '~/components/home/TeachSection.vue';
@@ -19,6 +20,7 @@ assertHomeBodyPlan();
 const introCompleted = ref(false);
 function onIntroCompleted(): void { introCompleted.value = true; }
 const standalone = useContentMode() === 'standalone';
+const catalogueEnabled = true;
 const content = useSiteContent();
 const legacyAdmission = computed(() => content.value ? examineHomeLegacySlots(content.value.pageSlots.home) : null);
 // Historical CMS inserts are not silently dropped or assigned to arbitrary Figma sections.
@@ -35,6 +37,8 @@ useSeoMeta({ title: 'SMD 아카데미 | 인테리어필름 시공 실무 교육'
 <template>
   <!-- Exactly one visible paint owner per breakpoint. Desktop uses JSONL scene; tablet/mobile reflow keeps semantic DOM. -->
   <template v-if="standalone || legacyAdmission?.kind === 'empty'">
+    <CatalogueHomeStage v-if="catalogueEnabled" />
+    <template v-else>
     <div class="smd-home smd-home--figma-scene" data-home-layout-contract="SMD_FIGMA_SCENE_VR1"
       :data-figma-source-digest="figmaScene.sourceSnapshotDigest" data-original-render-qualification="BLOCKED">
       <HomeIntroStage variant="figma" @completed="onIntroCompleted" />
@@ -50,6 +54,7 @@ useSeoMeta({ title: 'SMD 아카데미 | 인테리어필름 시공 실무 교육'
       <HomeFaq />
       <HomeConsultationCta />
     </div>
+    </template>
   </template>
 </template>
 

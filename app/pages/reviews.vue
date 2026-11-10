@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import CatalogueCover from '~/components/catalogue/CatalogueCover.vue';
+import CatalogueSheet from '~/components/catalogue/CatalogueSheet.vue';
 import ReviewsBodyStage from '~/components/reviews/ReviewsBodyStage.vue';
 import { standaloneReviewsR1Source } from '~/data/reviews-r1-source';
 import { reviewsVisualSourceLock } from '~/data/reviews-r1-manifest';
@@ -99,6 +101,14 @@ useSeoMeta({ title: '수강후기 | SMD 아카데미', robots: 'noindex,follow' 
 </script>
 
 <template>
+  <div class="smd-r7-route smd-r7-route--reviews" data-r7-route-owner="reviews" data-r7-hero="fullscreen">
+    <CatalogueCover page-id="reviews" eyebrow="STORIES / REVIEWS" heading="수강후기"
+      description="수강 경험을 담은 기록입니다." />
+    <CatalogueSheet page-id="reviews" section-id="content" :ordinal="2" :total="2"
+      variant="standard" fit="flow" label="STORIES / REVIEWS" heading-id="r7-reviews-content" >
+      <div class="smd-r7-route__listing">
+        <h2 id="r7-reviews-content">수강후기</h2>
+
   <ReviewsBodyStage v-if="standalone" :projection="projection" :active-filter="activeFilter"
     :interaction="currentInteraction" :source-lock-digest="reviewsVisualSourceLock.figmaSnapshotDigest"
     @change-filter="selectFilter" @load-more="loadMore" />
@@ -109,4 +119,8 @@ useSeoMeta({ title: '수강후기 | SMD 아카데미', robots: 'noindex,follow' 
       <p role="status">수강후기 콘텐츠 준비 중입니다.</p>
     </div>
   </section>
+
+      </div>
+    </CatalogueSheet>
+  </div>
 </template>

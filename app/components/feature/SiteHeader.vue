@@ -38,6 +38,7 @@ const toggle = ref<HTMLButtonElement | null>(null);
 const nav = homeHeaderNavigationV2.items; // Same owner for both desktop and compact navigation.
 const headerContentMode = useContentMode();
 const standalone = headerContentMode === 'standalone';
+const catalogueEnabled = true;
 
 const active = (to: string) => route.path === to;
 const galleryHeader = computed(() => route.path === '/archive');
@@ -124,6 +125,9 @@ const figmaLogoError = ref(false);
   >
     <div class="smd-site-header__inner">
       <NuxtLink to="/" class="smd-site-header__brand" :aria-label="`${brand} 홈으로`" @click="closeDrawer()">
+        <img v-if="catalogueEnabled" class="smd-r7-brand-logo" src="/media/catalogue/r7-logo.svg"
+          width="280" height="50" alt="SMD 아카데미" decoding="async" />
+        <template v-else>
         <span class="smd-site-header__symbol" :data-figma-node="galleryHeader ? 'node-1:6' : undefined">
           <img v-if="!figmaLogoError"
             src="/figma/smd-academy-header-logo.svg"
@@ -133,6 +137,7 @@ const figmaLogoError = ref(false);
           <span v-else class="smd-site-header__logo-error" role="status">로고 오류</span>
         </span>
         <span class="smd-site-header__brand-label" :data-figma-node="galleryHeader ? 'node-1:21' : undefined">{{ brand }}</span>
+        </template>
       </NuxtLink>
 
       <nav class="smd-site-header__desktop-nav" aria-label="주 메뉴">
