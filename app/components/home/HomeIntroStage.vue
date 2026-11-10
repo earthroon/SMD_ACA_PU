@@ -26,9 +26,13 @@ const viewportPaintHeight=ref<number|null>(null);
 const titleSafeMinimumHeight=ref(0);
 const effectivePaintHeight=computed<number|null>(()=>viewportPaintHeight.value===null?null:
  Math.max(viewportPaintHeight.value,titleSafeMinimumHeight.value));
-const paintFrameStyle=computed<Record<string,string>>(()=>({
- height:effectivePaintHeight.value===null?'calc(100svh - var(--smd-header-height))':`${effectivePaintHeight.value}px`,
+
+const paintFrameStyle = computed<Record<string, string>>(() => ({
+  height: effectivePaintHeight.value === null
+    ? '100svh'
+    : `${effectivePaintHeight.value}px`,
 }));
+
 const titleSafetyOverlap=ref(0);
 const viewportFault=ref<string|null>(null);
 const placementReady=computed(()=>placement.value?.kind==='admitted');
@@ -214,7 +218,7 @@ function updateViewportGeometry():void {
   const rect=paintFrame.value.getBoundingClientRect();
   const height=planIntroViewportHeight({
    viewportHeightCssPx:window.innerHeight,
-   headerHeightCssPx:header.getBoundingClientRect().height,
+   headerHeightCssPx: 0, // Hero now paints behind the fixed header
    frameTopCssPx:rect.top,scrollYCssPx:window.scrollY,
   });
   viewportFault.value=null;
@@ -440,11 +444,22 @@ onBeforeUnmount(()=>{
       <HeroSection v-else :paint-height-css-px="effectivePaintHeight" @film-paint-geometry="onFilmGeometry"
        @film-media-status="onFilmMediaStatus" />
     </div>
-    <div ref="overlay" class="smd-home-intro__overlay" data-intro-paint-owner="overlay"
-      :data-intro-overlay-admitted="placementReady?'true':'false'" :style="overlayStyle">
-      <FigmaSceneSection v-if="props.variant==='figma'" section-id="info-bar" />
-      <HomeInfoBar v-else />
-    </div>
+
+<div
+  ref="overlay"
+  class="smd-home-intro__overlay"
+  data-intro-paint-owner="overlay"
+  :data-intro-overlay-admitted="placementReady ? 'true' : 'false'"
+  :style="[overlayStyle, { visibility: 'hidden' }]"
+  aria-hidden="true"
+>
+  <FigmaSceneSection
+    v-if="props.variant === 'figma'"
+    section-id="info-bar"
+  />
+  <HomeInfoBar v-else />
+</div>
+
    </div>
    <div v-if="introLoadFault" class="smd-home-intro__load-fault" role="alert"
      :data-intro-failure="introLoadFault">

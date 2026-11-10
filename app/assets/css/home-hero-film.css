@@ -147,3 +147,62 @@ foreignObject:is(
   .smd-home--hero > .smd-home__container > :is(.font-label,.smd-home__hero-heading,.smd-home__hero-intro),
   .smd-hero-carousel__control { transition: none !important; }
 }
+
+/* HERO R2 · Bottom pagination */
+.smd-hero-carousel__pagination {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  z-index: 5;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+
+  transform: translateX(-50%);
+  pointer-events: auto;
+}
+
+.smd-hero-carousel__dot {
+  display: grid;
+  place-items: center;
+
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.smd-hero-carousel__dot::before {
+  content: "";
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.35);
+
+  transition:
+    width 240ms ease,
+    background-color 240ms ease;
+}
+
+.smd-hero-carousel__dot.is-active::before {
+  width: 28px;
+  background: #fff;
+}
+
+.smd-hero-carousel__dot:focus-visible {
+  outline: 2px solid var(--smd-action-orange);
+  outline-offset: -2px;
+  border-radius: 999px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .smd-hero-carousel__dot::before {
+    transition: none;
+  }
+}

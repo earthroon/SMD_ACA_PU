@@ -12,6 +12,28 @@ const ctaHref = usePublicConsultationHref();
 const route = useRoute();
 const scrolled = ref(false);
 const open = ref(false);
+
+const atDocumentTop = ref(true);
+
+const introHeaderReveal = useState<boolean>(
+  'smd-home-header-scroll-intent-r1',
+  () => false
+);
+
+const homeHeaderMode = computed<'top' | 'menu'>(() => {
+  switch (true) {
+    case route.path !== '/':
+    case open.value:
+    case !atDocumentTop.value:
+    case introHeaderReveal.value:
+      return 'menu';
+
+    default:
+      return 'top';
+  }
+});
+
+let previousScrollY = 0;
 const toggle = ref<HTMLButtonElement | null>(null);
 const nav = homeHeaderNavigationV2.items; // Same owner for both desktop and compact navigation.
 const headerContentMode = useContentMode();
@@ -43,9 +65,35 @@ function closeDrawer(restoreFocus = false) {
 function onKeydown(event: KeyboardEvent) {
   if (event.key === 'Escape' && open.value) closeDrawer(true);
 }
-function onScroll() { scrolled.value = window.scrollY > 16; }
+
+function onScroll(): void {
+  const y = Math.max(0, window.scrollY);
+
+  scrolled.value = y > 16;
+  atDocumentTop.value = y <= 2;
+
+  // 실제 아래 영역에서 최상단으로 돌아왔을 때 초기화
+  if (previousScrollY > 2 && y <= 2) {
+    introHeaderReveal.value = false;
+  }
+
+  previousScrollY = y;
+}
+
 watch(open, setDrawerLock, { flush: 'sync' });
-watch(() => route.path, () => closeDrawer());
+
+watch(() => route.path, () => {
+  closeDrawer();
+  introHeaderReveal.value = false;
+
+  if (import.meta.client) {
+    void nextTick(() => {
+      previousScrollY = window.scrollY;
+      onScroll();
+    });
+  }
+});
+
 onMounted(() => {
   onScroll();
   window.addEventListener('scroll', onScroll, { passive: true });
@@ -59,8 +107,17 @@ onUnmounted(() => {
 const figmaLogoError = ref(false);
 </script>
 <template>
-  <header
-    :class="['smd-site-header', { 'smd-site-header--scrolled': scrolled || open }]"
+
+<header
+  :class="[
+    'smd-site-header',
+    {
+      'smd-site-header--scrolled': scrolled || open,
+      'smd-site-header--home': route.path === '/'
+    }
+  ]"
+  :data-home-header-mode="homeHeaderMode"
+
     :data-header-contract="standalone ? 'SMD_HOME_HEADER_NAV_V3' : 'SMD_HOME_HEADER_NAV_V2'"
     :data-figma-node="galleryHeader ? 'node-1:4' : 'node-1:6'"
     :data-figma-file-key="galleryHeader ? GALLERY_FIGMA_FILE_KEY : undefined"

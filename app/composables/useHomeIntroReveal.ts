@@ -33,6 +33,12 @@ export function useHomeIntroReveal(
   geometryReady: Readonly<Ref<boolean>>,
 ) {
   const phase=ref<HomeIntroPhase>('disabled');
+
+const headerScrollIntent = useState<boolean>(
+  'smd-home-header-scroll-intent-r1',
+  () => false
+);
+
   const admitted=ref(false);
   const admissionReason=ref('NOT_MOUNTED');
   const releaseReason=ref<ReleaseReason|null>(null);
@@ -65,9 +71,14 @@ export function useHomeIntroReveal(
     admitted.value=false;
     visualState.value=finish?'managed':'pending';
   }
-  function start(now:number,source:IntroIntent):boolean {
-    if (phase.value!=='idle'||!geometryReady.value||!isVisible()) return false;
-    startedAt=now;lastWheelAt=now;
+
+function start(now:number,source:IntroIntent):boolean {
+  if (phase.value!=='idle'||!geometryReady.value||!isVisible()) return false;
+
+  // 첫 스크롤이 Intro 애니메이션에 흡수되어도 헤더 전환
+  headerScrollIntent.value = true;
+
+  startedAt=now;lastWheelAt=now;
     animationStarts.value+=1;firstIntent.value=source;
     phase.value='revealing';visualState.value='managed';
     draw(0);

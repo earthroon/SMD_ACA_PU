@@ -84,7 +84,11 @@ test('CF3: all slides cover a fixed full-size layered viewport, never translateX
   assert.match(css,/\.smd-hero-carousel__slide\s*> img\s*\{[\s\S]*?object-fit: cover/);
   assert.match(css,/object-position:\s*var\(--hero-focal-x/);
   assert.match(css,/\[data-hero-layer-state="revealing"\][\s\S]*?transition: opacity 700ms/);
-  assert.doesNotMatch(css,/translateX\(|flex: 0 0 100%|object-fit:\s*contain/);
+  const imageStart = css.indexOf('.smd-hero-carousel__viewport {');
+  const imageEnd = css.indexOf('.smd-hero-carousel:focus-visible', imageStart);
+  assert.ok(imageStart >= 0 && imageEnd > imageStart, 'HERO_IMAGE_CSS_SCOPE_MISSING');
+  const imageCss = css.slice(imageStart, imageEnd);
+  assert.doesNotMatch(imageCss,/translateX\(|flex: 0 0 100%|object-fit:\s*contain/);
   assert.match(css,/node-1:5/);
 });
 

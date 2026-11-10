@@ -15,9 +15,9 @@ function between(source, start, end) {
 }
 const imagePredicate = between(carousel, 'function eventIsCurrent(', 'function decodeImage(')
   .replace('node: EventTarget | null, slot: HeroCarouselSlot): node is HTMLImageElement', 'node, slot)');
-const start = between(intro, '  function start(', '  function tick(')
+const start = between(intro, 'function start(', 'function tick(')
   .replace('now:number,source:IntroIntent):boolean', 'now,source)');
-const request = between(intro, '  function requestBufferedIntent(', '  function onWheel(')
+const request = between(intro, 'function requestBufferedIntent(', 'function onWheel(')
   .replace('source:IntroIntent):boolean', 'source)');
 
 test('R1G no manufactured Event or unsafe casts in decode completion', () => {
@@ -51,6 +51,7 @@ test('R1G start returns boolean reflecting actual phase admission, not a TS-narr
 test('R1G buffered real intent triggers once, respects wheel and idle guard', () => {
   const env = {
     mounted:true, phase:{value:'idle'}, geometryReady:{value:true},
+    headerScrollIntent:{value:false},
     isVisible:()=>true, window:{scrollY:0}, finePointer:{matches:true},
     performance:{now:()=>123}, startedAt:0,lastWheelAt:0,
     animationStarts:{value:0},firstIntent:{value:null},visualState:{value:'pending'},
@@ -72,6 +73,7 @@ test('R1G media gate and carousel control policies preserved', () => {
   assert.match(carousel, /\}, HERO_CAROUSEL_DELAY_MS\)/);
   assert.match(carousel, /\}, HERO_DISSOLVE_DURATION_MS \+ 96\)/);
   assert.match(carousel, /autoplayLease\.value === instanceId/);
-  assert.match(carousel, /@click\.stop="navigate\('previous'\)"/);
-  assert.match(carousel, /@click\.stop="navigate\('next'\)"/);
+  assert.match(carousel, /v-for="slide in slides"/);
+  assert.match(carousel, /@click\.stop="requestTransition\(slide\.order, 'manual'\)"/);
+  assert.doesNotMatch(carousel, /data-hero-carousel-action=/);
 });

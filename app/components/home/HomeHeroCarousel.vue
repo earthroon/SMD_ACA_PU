@@ -400,23 +400,26 @@ onBeforeUnmount(() => {
         </figure>
       </div>
     </div>
-    <button type="button" class="smd-hero-carousel__control smd-hero-carousel__control--previous"
-      data-hero-carousel-action="previous" aria-label="이전 이미지"
-      :aria-controls="viewportId" :disabled="!owner || !ready || Boolean(loadFault)"
-      @click.stop="navigate('previous')">
-      <svg viewBox="0 0 24 24" width="24" height="24" fill="none"
-        stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M15 18l-6-6 6-6" />
-      </svg>
-    </button>
-    <button type="button" class="smd-hero-carousel__control smd-hero-carousel__control--next"
-      data-hero-carousel-action="next" aria-label="다음 이미지"
-      :aria-controls="viewportId" :disabled="!owner || !ready || Boolean(loadFault)"
-      @click.stop="navigate('next')">
-      <svg viewBox="0 0 24 24" width="24" height="24" fill="none"
-        stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="m9 18 6-6-6-6" />
-      </svg>
-    </button>
+
+    <div
+      class="smd-hero-carousel__pagination"
+      role="group"
+      aria-label="히어로 이미지 선택"
+    >
+      <button
+        v-for="slide in slides"
+        :key="slide.slotId"
+        type="button"
+        class="smd-hero-carousel__dot"
+        :class="{
+          'is-active': slide.order === selectedIndex
+        }"
+        :aria-label="`${slide.order + 1}번 이미지`"
+        :aria-pressed="slide.order === selectedIndex"
+        :aria-controls="viewportId"
+        :disabled="!owner || !ready || Boolean(loadFault)"
+        @click.stop="requestTransition(slide.order, 'manual')"
+      />
+    </div>
   </div>
 </template>

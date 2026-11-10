@@ -17,15 +17,17 @@ test('R1E/R2: 3000ms autoplay, 700ms image fade and 20ms caption delay',()=>{
   assert.match(vue,/\}, HERO_CAROUSEL_DELAY_MS\)/);
   assert.match(vue,/\}, HERO_DISSOLVE_DURATION_MS \+ 96\)/);
 });
-test('R1E/R2: buttons outside viewport remain keyboard accessible',()=>{
-  assert.match(vue,/data-hero-carousel-action="previous" aria-label="이전 이미지"/);
-  assert.match(vue,/data-hero-carousel-action="next" aria-label="다음 이미지"/);
-  assert.match(vue,/@click\.stop="navigate\('previous'\)"/);
-  assert.match(vue,/@click\.stop="navigate\('next'\)"/);
+test('R1E/R2: dot navigation replaces arrows and remains keyboard accessible',()=>{
+  assert.match(vue,/class="smd-hero-carousel__pagination"/);
+  assert.match(vue,/v-for="slide in slides"/);
+  assert.match(vue,/class="smd-hero-carousel__dot"/);
   assert.match(vue,/:aria-controls="viewportId"/);
+  assert.match(vue,/:aria-pressed="slide\.order === selectedIndex"/);
+  assert.match(vue,/@click\.stop="requestTransition\(slide\.order, 'manual'\)"/);
+  assert.doesNotMatch(vue,/data-hero-carousel-action=/);
+  assert.equal((vue.match(/class="smd-hero-carousel__dot"/g)??[]).length,1);
   assert.match(vue,/tabindex="0" @keydown="onKeydown"/);
   assert.match(vue,/event\.key/);
-  assert.equal((vue.match(/data-hero-carousel-action=/g)??[]).length,2);
 });
 test('R1E/R2: no horizontal motion, both manual directions follow the same state machine',()=>{
   assert.match(css,/\.smd-hero-carousel__container \{ position: relative/);
