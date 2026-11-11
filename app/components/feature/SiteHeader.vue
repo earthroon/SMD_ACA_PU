@@ -33,6 +33,19 @@ const homeHeaderMode = computed<'top' | 'menu'>(() => {
   }
 });
 
+// Background ownership depends only on route, actual scroll position, and drawer.
+// It does not inherit introHeaderReveal or the top/menu content animation state.
+const headerSurface = computed<'glass' | 'solid'>(() => {
+  switch (true) {
+    case route.path !== '/':
+    case !atDocumentTop.value:
+    case open.value:
+      return 'solid';
+    default:
+      return 'glass';
+  }
+});
+
 let previousScrollY = 0;
 const toggle = ref<HTMLButtonElement | null>(null);
 const nav = homeHeaderNavigationV2.items; // Same owner for both desktop and compact navigation.
@@ -126,6 +139,7 @@ const figmaLogoError = ref(false);
     }
   ]"
   :data-home-header-mode="homeHeaderMode"
+  :data-header-surface="headerSurface"
 
     :data-header-contract="standalone ? 'SMD_HOME_HEADER_NAV_V3' : 'SMD_HOME_HEADER_NAV_V2'"
     :data-figma-node="galleryHeader ? 'node-1:4' : 'node-1:6'"
@@ -133,15 +147,13 @@ const figmaLogoError = ref(false);
   >
     <div class="smd-site-header__inner">
       <NuxtLink to="/" class="smd-site-header__brand" :aria-label="`${brand} 홈으로`" @click="closeDrawer()">
-        <span class="smd-site-header__symbol" :data-figma-node="galleryHeader ? 'node-1:6' : undefined">
-          <img v-if="!figmaLogoError"
-            src="/figma/smd-academy-header-logo.svg"
-            class="smd-site-header__figma-logo"
-            width="80" height="80" alt="" aria-hidden="true" decoding="async"
-            @error="figmaLogoError = true" />
-          <span v-else class="smd-site-header__logo-error" role="status">로고 오류</span>
-        </span>
-        <span class="smd-site-header__brand-label" :data-figma-node="galleryHeader ? 'node-1:21' : undefined">{{ brand }}</span>
+        <img v-if="!figmaLogoError"
+          src="/brand/smd-academy-header-wordmark.svg"
+          class="smd-site-header__wordmark"
+          width="270" height="50" alt="" aria-hidden="true" decoding="async"
+          data-brand-presentation="SMD_HEADER_WORDMARK_R1"
+          @error="figmaLogoError = true" />
+        <span v-else class="smd-site-header__logo-error" role="status">로고 오류</span>
       </NuxtLink>
 
       <nav class="smd-site-header__desktop-nav" aria-label="주 메뉴">

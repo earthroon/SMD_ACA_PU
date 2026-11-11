@@ -8,16 +8,15 @@ import {HOME_BRAND_COPY_NODE_KEYS, homeVisibleBrandText} from '../../app/utils/h
 const root = resolve(import.meta.dirname,'../..');
 const read = (p) => readFileSync(resolve(root,p),'utf8');
 
-test('header label is glued and Pretendard Bold 700 only',() => {
+test('header brand copy remains semantic while the integrated SVG has sole visual ownership',() => {
   assertHomeHeaderBrandR1();
   assert.equal(HOME_HEADER_BRAND_R1.displayText,'SMD아카데미');
-  assert.equal(HOME_HEADER_BRAND_R1.fontWeight,700);
-  const css = read('app/assets/css/home-r2-header.css');
-  const block = css.match(/\.smd-site-header__brand-label\s*\{([^}]+)\}/)?.[1];
-  assert.ok(block);
-  assert.match(block,/font-family:\s*var\(--font-ui\)/);
-  assert.match(block,/font-weight:\s*700/);
-  assert.match(read('app/components/feature/SiteHeader.vue'),/const brand = HOME_HEADER_BRAND_R1\.displayText/);
+  assert.equal(HOME_HEADER_BRAND_R1.fontWeight,800);
+  const vue = read('app/components/feature/SiteHeader.vue');
+  assert.match(vue,/const brand = HOME_HEADER_BRAND_R1\.displayText/);
+  assert.match(vue,/:aria-label="`\$\{brand\} 홈으로`"/);
+  assert.match(vue,/src="\/brand\/smd-academy-header-wordmark\.svg"/);
+  assert.doesNotMatch(vue,/smd-site-header__brand-label|smd-site-header__symbol/);
 });
 
 test('only five known Figma source nodes are allowlisted',() => {
@@ -43,9 +42,9 @@ test('unrelated nodes and unlisted text remain byte-for-byte unchanged',() => {
 test('source copy files stay frozen and presentation override is isolated',() => {
   const native=read('app/components/figma/FigmaNativeText.vue');
   const semantic=read('app/components/home/HomeFigmaText.vue');
-  assert.match(native,/homeVisibleBrandText\(props\.nodeKey, run\.characters\)/);
+  assert.match(native,/homeVisibleBrandText\(\s*props\.nodeKey,\s*run\.characters\s*,?\s*\)/);
   assert.match(native,/:data-source-text-digest="original\.digest"/);
-  assert.match(semantic,/homeVisibleBrandText\(textKey, run\.characters\)/);
+  assert.match(semantic,/homeVisibleBrandText\(\s*textKey,\s*run\.characters\s*,?\s*\)/);
   assert.match(semantic,/:data-text-digest="source\.textDigest"/);
   assert.equal(figmaScene.texts['node-1:11'].characters,'SMD 아카데미');
 });

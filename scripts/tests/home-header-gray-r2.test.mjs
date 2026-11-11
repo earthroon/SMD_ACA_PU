@@ -14,11 +14,12 @@ const body = source('app/assets/css/home-body-compact.css');
 test('H1 desktop Header is exactly 75% and shares one height authority with Home', () => {
   assert.match(header, /:root\s*\{\s*--smd-desktop-header-height:\s*93\.75px\s*;/);
   assert.match(header, /height:\s*var\(--smd-desktop-header-height\)/);
-  assert.match(header, /--smd-header-v2-brand-symbol-size:\s*60px/);
+  assert.match(header, /--smd-wordmark-width:\s*270px/);
+  assert.match(header, /--smd-wordmark-offset-x:\s*max\(-80px/);
   assert.match(header, /max-width:\s*1228\.5px/);
   assert.match(header, /width:\s*78\.75px/);
   assert.match(header, /height:\s*33\.75px/);
-  assert.match(header, /font-size:\s*22\.5px/);
+  assert.match(header, /aspect-ratio:\s*270\s*\/\s*50/);
   assert.match(header, /font-size:\s*15px/);
   assert.equal((home.match(/--home-header-offset:var\(--smd-desktop-header-height\)/g) ?? []).length, 2);
   assert.doesNotMatch(home, /--home-header-offset:125px/);
