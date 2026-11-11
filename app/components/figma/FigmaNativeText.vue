@@ -3,6 +3,7 @@ import {figmaScene} from '~/data/figma-r2-scene.generated';
 import {r3MethodsTextOverride} from '~/data/figma-r2-visual-r3';
 import {homeVisibleBrandText} from '~/utils/homeBrandVisibleText';
 import {homeVisibleFilmText, isHomeFilmCopyNode} from '~/utils/homeFilmCopyPresentation';
+import {isHeroCarouselTextNode, resolveHeroCarouselText} from '~/data/home-hero-carousel';
 import {isHomeSpecialEmphasisRun, presentHomeSpecialPointRuns} from '~/utils/homeSpecialPointPresentation';
 import {assertHomeTrainingR5TextSource, homeTrainingR5PaintWidth, HOME_TRAINING_R5_FIELD_NODE} from '~/utils/homeTrainingOpticalR5';
 import {
@@ -10,32 +11,46 @@ import {
   type FigmaTextPaintGrowth,
 } from '~/utils/figma-native-text-paint';
 import {homeBenefitsVisibleText} from '~/utils/homeBenefitsCopyPresentation';
+import {homeTrainingTimelineVisibleText} from
+  '~/utils/homeTrainingTimelineCopyPresentation';
 const props = defineProps<{nodeKey:string; width:number;height:number}>();
+const captionIndex = useState<number>('smd-hero-carousel-caption-r1', () => 0);
 const original = computed(() => figmaScene.texts[props.nodeKey]);
 const trainingPaintWidth = computed(() => homeTrainingR5PaintWidth(props.nodeKey, props.width));
 const visual = computed(() => r3MethodsTextOverride(props.nodeKey));
 // Explicit presentation layer; original UTF-16 runs, digests and Scene geometry stay immutable.
 const visibleRuns = computed(() => {
   assertHomeTrainingR5TextSource(props.nodeKey, original.value);
-  return presentHomeSpecialPointRuns(props.nodeKey,
-  (original.value?.runs ?? []).map(run => {
-    const sized = visual.value ? {...run,style:{...run.style,
-      fontSize:`${visual.value.fontSize}px`,letterSpacing:`${visual.value.letterSpacing}px`}} : run;
-
-const displayed = homeBenefitsVisibleText(
+  const sourceRuns = presentHomeSpecialPointRuns(props.nodeKey,
+    (original.value?.runs ?? []).map(run => {
+      const sized = visual.value ? {...run,style:{...run.style,
+        fontSize:`${visual.value.fontSize}px`,letterSpacing:`${visual.value.letterSpacing}px`}} : run;
+      const displayed = homeBenefitsVisibleText(
   props.nodeKey,
   homeVisibleFilmText(
     props.nodeKey,
-    homeVisibleBrandText(
-      props.nodeKey,
-      run.characters,
-    ),
+    homeVisibleBrandText(props.nodeKey, run.characters),
   ),
 );
 
-    return displayed === run.characters ? sized : {...sized, characters: displayed};
-  }),
+const timelineText = homeTrainingTimelineVisibleText(
+  props.nodeKey,
+  displayed,
+);
+
+return timelineText === run.characters
+  ? sized
+  : {...sized, characters: timelineText};
+    }),
   );
+  const copy = isHeroCarouselTextNode(props.nodeKey)
+    ? resolveHeroCarouselText(captionIndex.value, props.nodeKey) : null;
+  if (copy === null || copy === sourceRuns.map(run => run.characters).join('')) return sourceRuns;
+  const first = sourceRuns[0];
+  if (!first) throw new Error(`HERO_CAROUSEL_FIGMA_COPY_RUN_MISSING:${props.nodeKey}`);
+  // Presentation override uses the existing first-run style and original Node geometry.
+  // Default hero-1 still retains its complete source runs and individual letter spacing.
+  return [{...first, characters: copy, start: 0, end: copy.length}];
 });
 const growth = ref<FigmaTextPaintGrowth>(ZERO_FIGMA_TEXT_GROWTH);
 const paint = computed(() => deriveFigmaTextPaintWindow(
@@ -113,6 +128,7 @@ function requestInkAudit(): void {
   cancelAnimationFrame(nextFrame);
   nextFrame = requestAnimationFrame(auditInk);
 }
+watch(visibleRuns, requestInkAudit, {flush: 'post'});
 function checkPretendard(): void {
   fontGate.value = Array.from(document.fonts).some(font =>
     /Pretendard/i.test(font.family) && font.status === 'loaded') ?

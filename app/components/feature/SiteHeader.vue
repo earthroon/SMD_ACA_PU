@@ -36,6 +36,15 @@ const homeHeaderMode = computed<'top' | 'menu'>(() => {
 let previousScrollY = 0;
 const toggle = ref<HTMLButtonElement | null>(null);
 const nav = homeHeaderNavigationV2.items; // Same owner for both desktop and compact navigation.
+
+const headerLabels = {
+  about: '아카데미소개',
+  curriculum: '교육과정',
+  archive: '수강갤러리',
+  reviews: '수강후기',
+  faq: 'FAQ',
+} as const;
+
 const headerContentMode = useContentMode();
 const standalone = headerContentMode === 'standalone';
 
@@ -141,7 +150,7 @@ const figmaLogoError = ref(false);
           :data-header-item="item.id" :data-target-status="homeHeaderTargetStatus(item, headerContentMode)" :data-figma-node="galleryHeaderNodeForItem(route.path, item.id, item.sourceNodeKey)"
           :aria-current="active(item.to) ? 'page' : undefined"
           class="smd-site-header__nav-link"
-        >{{ item.label }}</NuxtLink>
+        >{{ headerLabels[item.id] }}</NuxtLink>
       </nav>
 
       <NuxtLink v-if="standalone" to="/contact"
@@ -167,7 +176,7 @@ const figmaLogoError = ref(false);
         <NuxtLink v-for="item in nav" :key="item.id" :to="item.to"
           class="smd-site-header__drawer-link" :aria-current="active(item.to) ? 'page' : undefined"
           :data-header-item="item.id" :data-target-status="homeHeaderTargetStatus(item, headerContentMode)" @click="closeDrawer()"
-        >{{ item.label }}</NuxtLink>
+        >{{ headerLabels[item.id] }}</NuxtLink>
         <NuxtLink v-if="standalone" to="/contact" class="smd-site-header__drawer-cta"
           @click="closeDrawer()">{{ homeHeaderNavigationV3.cta.label }}</NuxtLink>
         <a v-else-if="ctaHref" :href="ctaHref" target="_blank" rel="noopener noreferrer"

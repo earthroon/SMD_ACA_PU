@@ -62,4 +62,24 @@ const copy=homeCopyRefs.specialStart;
     font-weight: 700 !important;
   }
 }
+
+/* SMD_SPECIAL_START_LAYOUT_R1 */
+@media (min-width: 700px) and (max-width: 1099px) {
+  .smd-home--special-start .smd-home__special-layout {
+    grid-template-columns: minmax(0, 484px) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .smd-home--special-start .smd-home__special-layout > .smd-home__media {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: start;
+  }
+
+  .smd-home--special-start .smd-home__special-layout > .smd-home__copy-block {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: start;
+  }
+}
 </style>

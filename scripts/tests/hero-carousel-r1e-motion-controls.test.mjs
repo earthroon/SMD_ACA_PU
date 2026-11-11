@@ -37,8 +37,9 @@ test('R1E/R2: no horizontal motion, both manual directions follow the same state
   assert.equal(nextHeroDissolveIndex(0,'previous',3),2);
   assert.equal(nextHeroDissolveIndex(2,'next',3),0);
 });
-test('R1E/R2: hover and keyboard focus pause autoplay without a focus latch',()=>{
-  assert.match(vue,/!hovered\.value && !focused\.value/);
+test('R1E/R2: hover keeps autoplay active, keyboard focus still pauses',()=>{
+  assert.match(vue,/!reducedMotion\.value && !focused\.value && !loadFault\.value && ready\.value/);
+  assert.doesNotMatch(vue,/!hovered\.value/);
   assert.match(vue,/target instanceof HTMLElement && target\.matches\(':focus-visible'\)/);
   assert.match(vue,/function onPointerLeave/);
   assert.match(vue,/function onFocusOut/);

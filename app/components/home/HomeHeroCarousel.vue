@@ -36,6 +36,9 @@ const sourceRevision = computed(() => slides.value.map(s =>
 
 // Preserve Nuxt's shared Figma/semantic selection and single active timer lease.
 const selectedIndex = useState<number>('smd-hero-carousel-selected-r1', () => 0);
+// Copy switches when the existing caption-hide phase starts, never while the old image is visible.
+// Both Figma text and semantic text consume this single Nuxt state.
+const captionIndex = useState<number>('smd-hero-carousel-caption-r1', () => selectedIndex.value);
 const autoplayLease = useState<string | null>('smd-hero-carousel-autoplay-lease-r1', () => null);
 const instanceId = useId();
 const viewportId = `${instanceId}-viewport`;
@@ -73,7 +76,7 @@ let mounted = false;
 const imageKey = (s: HeroCarouselSlot): string => `${s.imageId}|${s.src}`;
 const ready = computed(() => slides.value.every(s => loadedKeys.value.has(imageKey(s))));
 const canPlay = computed(() => owner.value && intersecting.value && pageVisible.value &&
-  !reducedMotion.value && !hovered.value && !focused.value && !loadFault.value && ready.value);
+  !reducedMotion.value && !focused.value && !loadFault.value && ready.value);
 
 function clearAutoplay(): void {
   if (autoplayTimer !== null) clearTimeout(autoplayTimer);
@@ -96,6 +99,7 @@ function settleMotion(): void {
   enteringVisible.value = true;
   pendingIndex.value = null;
   captionPhase.value = 'visible';
+  if (owner.value) captionIndex.value = selectedIndex.value;
 }
 function syncAutoplay(): void {
   if (!mounted || !canPlay.value || slides.value.length < 2) {
@@ -123,6 +127,7 @@ function finishTransition(epoch: number): void {
   leavingIndex.value = null;
   enteringVisible.value = true;
   captionPhase.value = 'visible';
+  captionIndex.value = selectedIndex.value;
   const pending = pendingIndex.value;
   pendingIndex.value = null;
   if (pending !== null && pending !== selectedIndex.value && owner.value && ready.value && !loadFault.value) {
@@ -155,6 +160,7 @@ function requestTransition(target: number, reason: 'auto' | 'manual'): void {
   if (reducedMotion.value) {
     settleMotion();
     selectedIndex.value = target;
+    captionIndex.value = target;
     syncAutoplay();
     return;
   }
@@ -175,6 +181,7 @@ function requestTransition(target: number, reason: 'auto' | 'manual'): void {
         revealFrame = null;
         if (!mounted || motionEpoch !== epoch || !owner.value) return;
         captionPhase.value = 'hidden';
+        captionIndex.value = target;
         enteringVisible.value = true;
         // Caption delay is measured from image fade start, NOT its completion.
         captionTimer = setTimeout(() => {
@@ -311,6 +318,9 @@ function updateOwner(): void {
   const rect = root.value.getBoundingClientRect();
   owner.value = match && rect.width > 0 && rect.height > 0 &&
     getComputedStyle(root.value).visibility !== 'hidden';
+  if (owner.value && !transitioning.value && captionIndex.value !== selectedIndex.value) {
+    captionIndex.value = selectedIndex.value;
+  }
   reducedMotion.value = reducedQuery.matches;
   pageVisible.value = !document.hidden;
 }
@@ -373,6 +383,7 @@ onBeforeUnmount(() => {
     data-hero-motion="dissolve-r2"
     :data-hero-owner="owner ? 'active' : 'inactive'"
     :data-hero-selected-index="selectedIndex"
+    :data-hero-caption-index="captionIndex"
     :data-hero-delay-ms="HERO_CAROUSEL_DELAY_MS"
     :data-hero-ready="ready ? 'true' : 'false'"
     :data-hero-caption-phase="captionPhase"

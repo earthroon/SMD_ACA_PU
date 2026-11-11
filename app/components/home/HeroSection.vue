@@ -10,8 +10,10 @@ const props=defineProps<{paintHeightCssPx?:number|null}>();
 import HomeFigmaText from './HomeFigmaText.vue';
 import { homeCopyRefs } from '~/data/home-r2-composition';
 import { homeFigmaText } from '~/data/home-r2-copy';
-import { HOME_FILM_COPY_LABEL } from '~/utils/homeFilmCopyPresentation';
+import { resolveHeroCarouselCopy } from '~/data/home-hero-carousel';
 const copy=homeCopyRefs.hero;
+const captionIndex = useState<number>('smd-hero-carousel-caption-r1', () => 0);
+const mobileHeading = computed(() => resolveHeroCarouselCopy(captionIndex.value).mobileHeading);
 
 // MOBILE_R1 is a display-only copy override. The frozen Figma text and digest stay intact.
 const frozenHeading=homeFigmaText[copy.heading];
@@ -31,8 +33,8 @@ if (copy.heading!=='node-35:5' ||
         <span class="smd-home__hero-heading-source"><HomeFigmaText :text-key="copy.heading" /></span>
         <span class="smd-home__hero-heading-mobile" data-mobile-heading="MOBILE_HERO_COPY_R1"
           :data-source-text-digest="frozenHeading.textDigest">
-          <span class="smd-home__hero-mobile-line">업계최초 {{ HOME_FILM_COPY_LABEL }}</span>
-          <span class="smd-home__hero-mobile-line">실무자 양성 프로그램 운영</span>
+          <span v-for="(line, index) in mobileHeading" :key="index"
+            class="smd-home__hero-mobile-line">{{ line }}</span>
         </span>
       </h1>
       <p class="smd-home__hero-intro mt-7 max-w-2xl whitespace-pre-line text-base leading-relaxed text-foreground-800 md:text-xl"><HomeFigmaText :text-key="copy.introduction" /></p>

@@ -48,7 +48,7 @@
 }
 .smd-site-header__desktop-nav {display: flex; align-items: center; justify-content: flex-end; gap: clamp(18px, 1.7vw, 32px); margin-left: auto; min-width: 0;}
 .smd-site-header__nav-link {
-  flex-shrink: 0; white-space: nowrap; font-size: clamp(16px, 1.041667vw, 20px); font-weight: 400;
+  flex-shrink: 0; white-space: nowrap; font-size: clamp(16px, 1.041667vw, 20px); font-weight: 700;
   letter-spacing: -.008em; color: #2f2f2f; text-decoration: none;
   transition: color 150ms ease;
 }
@@ -56,7 +56,7 @@
 .smd-site-header__cta {
   width: 105px; min-width: 105px; height: 45px; display: inline-flex; align-items: center; justify-content: center;
   border-radius: 3.5px; background: var(--smd-action-orange); color: white;
-  font-weight: 400; font-size: 20px; white-space: nowrap; letter-spacing: -.008em;
+  font-weight: 700; font-size: 20px; white-space: nowrap; letter-spacing: -.008em;
   text-decoration: none;
 }
 .smd-site-header__cta:hover {background: #bd4c19;}
@@ -282,4 +282,21 @@
 .smd-home--figma-scene,
 .smd-home--semantic-reflow {
   --home-header-offset: 0px;
+}
+/* SMD HEADER NAV TEXT COLOR HOVER R1 */
+.smd-site-header--home[data-home-header-mode]
+.smd-site-header__nav-link:is(:hover, :focus-visible) {
+    color: #D95E22;
+}
+
+.smd-site-header--home
+.smd-site-header__nav-link {
+    transition: color 360ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .smd-site-header--home
+    .smd-site-header__nav-link {
+        transition: none;
+    }
 }

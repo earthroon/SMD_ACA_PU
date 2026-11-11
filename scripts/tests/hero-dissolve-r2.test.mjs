@@ -44,7 +44,8 @@ test('R2 transition generation owns RAF/caption/timer and coalesces next input',
 });
 test('R2 media gating and lease remain explicit across responsive instances',()=>{
   assert.match(vue,/const ready = computed\(\(\) => slides\.value\.every/);
-  assert.match(vue,/!reducedMotion\.value && !hovered\.value && !focused\.value/);
+  assert.match(vue,/!reducedMotion\.value && !focused\.value && !loadFault\.value && ready\.value/);
+  assert.doesNotMatch(vue,/!hovered\.value/);
   assert.match(vue,/autoplayLease\.value !== null && autoplayLease\.value !== instanceId/);
   assert.match(vue,/if \(!mounted \|\| !canPlay\.value \|\| slides\.value\.length < 2\)/);
   assert.match(vue,/if \(autoplayLease\.value === instanceId\) autoplayLease\.value = null/);
