@@ -283,3 +283,30 @@
 .smd-home--semantic-reflow {
   --home-header-offset: 0px;
 }
+
+/* SMD_HOME_PSD_R1_CF2: home-only source roles; no global palette mutation. */
+.smd-home {
+  --home-psd-ink-inverse: #FFFFFF;
+  --home-psd-ink-black: #000000;
+  --home-psd-ink-benefit: #2A2A2A;
+  --home-psd-ink-special: #323232;
+  --home-psd-ink-method: #161616;
+  --home-psd-step-number: #8196C2;
+  --home-psd-ink-note: #535353;
+  --home-psd-ink-faq: #3A3A3A;
+  --home-psd-ink-residual: #5A5A5A;
+  --home-psd-ink-residual-secondary: #272727;
+  --home-psd-benefit-surface: #EAF1FF;
+  --home-psd-step-fill: #D7E4FF;
+  --home-psd-step-alpha: calc(135 / 255);
+  --home-psd-step-background: rgb(215 228 255 / var(--home-psd-step-alpha));
+  --home-psd-hero-shade-alpha: calc(153 / 255);
+  --home-psd-training-shade-alpha: calc(153 / 255);
+  --home-psd-consultation-shade-alpha: calc(179 / 255);
+}
+.smd-home-source-text { display: inline-block; position: relative; line-height: 0; }
+.smd-home-source-text__measure {
+  position: absolute; width: 1px; height: 1px; overflow: visible;
+  visibility: hidden; pointer-events: none;
+}
+.smd-home-source-text__paint { display: block; overflow: visible; max-width: none; }

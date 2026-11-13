@@ -1,0 +1,279 @@
+✔ CF1 user SVG preserved with exact digest, geometry and source paints (11.057466ms)
+✔ CF2 brand uses one wordmark and a preserved semantic label, not duplicated Figma text (2.654163ms)
+✔ CF3 Wordmark has one ratio, responsive widths and guarded desktop left offset (2.029326ms)
+✖ CF4 Home surface is route/scroll/drawer owned, not dependent on intro reveal (7.893103ms)
+✔ CF5 Existing menu links, CTA, focus/hover, reduced-motion and viewport height preserved (2.062668ms)
+✖ exact nine-section Home plan binds Figma copy and eight unbound media slots (40.355788ms)
+✔ empty V5 slots are admitted, populated legacy nodes always fail closed (1.62421ms)
+✔ unknown or malformed legacy slots are not silently accepted (0.226207ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 6
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1017.921887
+
+✖ failing tests:
+
+test at scripts/tests/header-wordmark-r1.test.mjs:56:1
+✖ CF4 Home surface is route/scroll/drawer owned, not dependent on intro reveal (7.893103ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /background-color:\s*rgba\(255,\s*255,\s*255,\s*0\.20\)/. Input:
+  
+  '.smd-site-header--home[data-header-surface="glass"] {\n' +
+    '  background-color: rgba(255, 255, 255, 0.15);\n' +
+    '  border-bottom: 0;\n' +
+    '  box-shadow: none;\n' +
+    '}'
+  
+      at TestContext.<anonymous> (file:///workspace/scratch/c60cf69663bd/baseline/scripts/tests/header-wordmark-r1.test.mjs:66:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '.smd-site-header--home[data-header-surface="glass"] {\n  background-color: rgba(255, 255, 255, 0.15);\n  border-bottom: 0;\n  box-shadow: none;\n}',
+    expected: /background-color:\s*rgba\(255,\s*255,\s*255,\s*0\.20\)/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at scripts/tests/home-r2-cf2-composition.test.mjs:8:1
+✖ exact nine-section Home plan binds Figma copy and eight unbound media slots (40.355788ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /<HeroSection v-else @film-paint-geometry="onFilmGeometry"\s*\/>/. Input:
+  
+  '<script setup lang="ts">\n' +
+    "import { computed, nextTick, onBeforeUnmount, onMounted, ref, useId, watch } from 'vue';\n" +
+    "import FigmaSceneSection from '~/components/figma/FigmaSceneSection.vue';\n" +
+    "import HeroSection from '~/components/home/HeroSection.vue';\n" +
+    "import HomeInfoBar from '~/components/home/HomeInfoBar.vue';\n" +
+    "import { useHomeIntroReveal } from '~/composables/useHomeIntroReveal';\n" +
+    "import { figmaScene } from '~/data/figma-r2-scene.generated';\n" +
+    "import { homeInfoLayout } from '~/utils/homeInfoLayout';\n" +
+    "import { planIntroViewportHeight, titleSafeOverlay, type TitleSafetyRect } from '~/utils/homeIntroViewportGeometry';\n" +
+    "import { planIntroTitleSafeMinimumHeight } from '~/utils/homeIntroTitleSafeHeight';\n" +
+    "import { canPresentIntro, INTRO_MEDIA_TIMEOUT_MS, type HeroMediaStatus } from '~/utils/homeIntroMediaGate';\n" +
+    'import {\n' +
+    '  planIntroOverlay, type FilmPaintGeometry, type IntroOverlayPlacement, type IntroVariant,\n' +
+    "} from '~/utils/homeIntroOverlayGeometry';\n" +
+    '\n' +
+    "const props = withDefaults(defineProps<{variant?:IntroVariant}>(),{variant:'figma'});\n" +
+    'const emit = defineEmits<{completed: []}>();\n' +
+    'const root=ref<HTMLElement|null>(null);\n' +
+    'const paintFrame=ref<HTMLElement|null>(null);\n' +
+    'const overlay=ref<HTMLElement|null>(null);\n' +
+    'const filmGeometry=ref<FilmPaintGeometry|null>(null);\n' +
+    'const placement=ref<IntroOverlayPlacement|null>(null);\n' +
+    'const viewportPaintHeight=ref<number|null>(null);\n' +
+    '// The viewport is a minimum. A short viewport may need extra vertical space\n' +
+    '// for the original title and the bottom-anchored Intro Info Bar to coexist.\n' +
+    'const titleSafeMinimumHeight=ref(0);\n' +
+    'const effectivePaintHeight=computed<number|null>(()=>viewportPaintHeight.value===null?null:\n' +
+    ' Math.max(viewportPaintHeight.value,titleSafeMinimumHeight.value));\n' +
+    '\n' +
+    'const paintFrameStyle = computed<Record<string, string>>(() => ({\n' +
+    '  height: effectivePaintHeight.value === null\n' +
+    "    ? '100svh'\n" +
+    '    : `${effectivePaintHeight.value}px`,\n' +
+    '}));\n' +
+    '\n' +
+    'const titleSafetyOverlap=ref(0);\n' +
+    'const viewportFault=ref<string|null>(null);\n' +
+    "const placementReady=computed(()=>placement.value?.kind==='admitted');\n" +
+    'const heroMedia=ref<HeroMediaStatus|null>(null);\n' +
+    'const fontsReady=ref(false);\n' +
+    "const introLoadState=ref<'loading'|'ready'|'failed'>('loading');\n" +
+    'const introLoadFault=ref<string|null>(null);\n' +
+    "const introInteractionReady=computed(()=>introLoadState.value==='ready'&&placementReady.value);\n" +
+    'const introGateOwnerId=useId();\n' +
+    "const introRoute='vue-overlay' as const;\n" +
+    'const {phase,admitted,admissionReason,releaseReason,ignoredWheelEvents,animationStarts,\n' +
+    ' visualState,firstIntent,presentation,requestBufferedIntent}=useHomeIntroReveal(root,introRoute,introInteractionReady);\n' +
+    'let mounted=false,resizeObserver:ResizeObserver|null=null;\n' +
+    'let geometryEpoch=0, scheduled=false, lastGeneration=-1;\n' +
+    'let titleSafeGrowAttempts=0;\n' +
+    'let completionEmitted=false;\n' +
+    'let introLoadRaf:number|null=null, introLoadWatchdog:number|null=null;\n' +
+    "let introGateLocked=false, bufferedIntent:'wheel'|'keyboard'|'native-scroll'|null=null;\n" +
+    "let fingerY:number|null=null, stableFrameCount=0, lastLayoutStamp='';\n" +
+    '\n' +
+    '/** Loading gate only owns the initially visible Intro; the hidden responsive twin stays inert. */\n' +
+    'function introGateVisible():boolean {\n' +
+    ' const el=root.value;\n' +
+    ' if(!el||!el.isConnected||document.hidden||!el.getClientRects().length)return false;\n' +
+    ' const bounds=el.getBoundingClientRect();\n' +
+    " return bounds.width>0&&bounds.height>0&&getComputedStyle(el).display!=='none';\n" +
+    '}\n' +
+    "function captureBufferedIntent(source:'wheel'|'keyboard'|'native-scroll'):void {\n" +
+    ' if(bufferedIntent===null)bufferedIntent=source;\n' +
+    '}\n' +
+    'function onGateWheel(event:WheelEvent):void {\n' +
+    ' if(event.ctrlKey)return;\n' +
+    ' if(event.cancelable)event.preventDefault();\n' +
+    ' event.stopImmediatePropagation();\n' +
+    ' if(event.deltaY>0&&Math.abs(event.deltaY)>=Math.abs(event.deltaX)&&\n' +
+    "    !(event.target instanceof Element&&event.target.closest('input,textarea,select,[contenteditable],button,a'))){\n" +
+    "  captureBufferedIntent('wheel');\n" +
+    ' }\n' +
+    '}\n' +
+    'function onGateKey(event:KeyboardEvent):void {\n' +
+    ' if(event.altKey||event.ctrlKey||event.metaKey||\n' +
+    "    (event.target instanceof Element&&event.target.closest('input,textarea,select,[contenteditable],button,a')))return;\n" +
+    ' switch(event.key){\n' +
+    "  case 'ArrowDown':case 'PageDown':case ' ':case 'ArrowUp':case 'PageUp':case 'Home':case 'End':\n" +
+    '   if(event.cancelable)event.preventDefault();\n' +
+    '   event.stopImmediatePropagation();\n' +
+    "   if(['ArrowDown','PageDown',' '].includes(event.key))captureBufferedIntent('keyboard');\n" +
+    '   break;\n' +
+    ' }\n' +
+    '}\n' +
+    'function onGateTouchStart(event:TouchEvent):void {\n' +
+    ' fingerY=event.touches.length===1?event.touches[0]!.clientY:null;\n' +
+    '}\n' +
+    'function onGateTouchMove(event:TouchEvent):void {\n' +
+    ' if(event.touches.length===1&&fingerY!==null&&fingerY-event.touches[0]!.clientY>10)\n' +
+    "  captureBufferedIntent('native-scroll');\n" +
+    ' if(event.cancelable)event.preventDefault();\n' +
+    ' event.stopImmediatePropagation();\n' +
+    '}\n' +
+    'function releaseIntroScrollLock():void {\n' +
+    ' if(!introGateLocked)return;\n' +
+    ' introGateLocked=false;\n' +
+    " window.removeEventListener('wheel',onGateWheel,true);\n" +
+    " window.removeEventListener('keydown',onGateKey,true);\n" +
+    " window.removeEventListener('touchstart',onGateTouchStart,true);\n" +
+    " window.removeEventListener('touchmove',onGateTouchMove,true);\n" +
+    ' if(document.documentElement.dataset.smdIntroLoadLockOwner===introGateOwnerId)\n' +
+    '  delete document.documentElement.dataset.smdIntroLoadLockOwner;\n' +
+    ' fingerY=null;\n' +
+    '}\n' +
+    'function acquireIntroScrollLock():void {\n' +
+    ' if(introGateLocked)return;\n' +
+    ' const html=document.documentElement;\n' +
+    ' if(html.dataset.smdIntroLoadLockOwner&&html.dataset.smdIntroLoadLockOwner!==introGateOwnerId)return;\n' +
+    ' html.dataset.smdIntroLoadLockOwner=introGateOwnerId;\n' +
+    " window.addEventListener('wheel',onGateWheel,{capture:true,passive:false});\n" +
+    " window.addEventListener('keydown',onGateKey,true);\n" +
+    " window.addEventListener('touchstart',onGateTouchStart,{capture:true,passive:true});\n" +
+    " window.addEventListener('touchmove',onGateTouchMove,{capture:true,passive:false});\n" +
+    ' introGateLocked=true;\n' +
+    '}\n' +
+    'function emitIntroCompleted():void {\n' +
+    ' if(completionEmitted)return;\n' +
+    ' completionEmitted=true;\n' +
+    " emit('completed');\n" +
+    '}\n' +
+    'function failIntroLoading(reason:string):void {\n' +
+    " if(introLoadState.value==='failed')return;\n" +
+    " introLoadState.value='failed';introLoadFault.value=reason;\n" +
+    " console.error('INTRO_R1F_LOAD_GATE_FAILED',reason);\n" +
+    ' releaseIntroScrollLock();\n' +
+    ' if(introLoadRaf!==null)cancelAnimationFrame(introLoadRaf);\n' +
+    ' introLoadRaf=null;\n' +
+    ' if(introLoadWatchdog!==null)clearTimeout(introLoadWatchdog);\n' +
+    ' introLoadWatchdog=null;\n' +
+    ' // Failure is explicit; downstream body must not remain forever unarmed.\n' +
+    ' emitIntroCompleted();\n' +
+    '}\n' +
+    'function introLayoutStamp():string|null {\n' +
+    " if(!paintFrame.value||!overlay.value||placement.value?.kind!=='admitted'||!filmGeometry.value)return null;\n" +
+    ' const frame=paintFrame.value.getBoundingClientRect();\n' +
+    ' const film=filmGeometry.value;\n' +
+    ' if(Math.abs(film.viewportRectCss.width-frame.width)>1||\n' +
+    '    Math.abs(film.viewportRectCss.height-frame.height)>1)return null;\n' +
+    ' const plan=placement.value;\n' +
+    " const svg=overlay.value.querySelector<SVGSVGElement>('.smd-figma-scene-section--info-bar > svg');\n" +
+    " const content=props.variant==='figma'?svg:overlay.value.querySelector<HTMLElement>('.smd-home--info-bar');\n" +
+    ' if(!content)return null;\n' +
+    ' const contentRect=content.getBoundingClientRect();\n' +
+    ' const values=[frame.left,frame.top,frame.width,frame.height,\n' +
+    '  contentRect.width,contentRect.height,plan.topCssPx,plan.heightCssPx];\n' +
+    ' if(!values.every(Number.isFinite))return null;\n' +
+    " return values.map(v=>Math.round(v*4)/4).join('|');\n" +
+    '}\n' +
+    'function probeIntroStability():void {\n' +
+    ' introLoadRaf=null;\n' +
+    " if(!mounted||introLoadState.value!=='loading'||!introGateVisible())return;\n" +
+    " if(!placementReady.value||!fontsReady.value||heroMedia.value?.phase!=='ready'){\n" +
+    "  stableFrameCount=0;lastLayoutStamp='';return;\n" +
+    ' }\n' +
+    ' const sample=introLayoutStamp();\n' +
+    " if(sample===null){stableFrameCount=0;lastLayoutStamp='';return;}\n" +
+    ' stableFrameCount=sample===lastLayoutStamp?stableFrameCount+1:1;\n' +
+    ' lastLayoutStamp=sample;\n' +
+    ' if(canPresentIntro(heroMedia.value,placementReady.value,fontsReady.value,stableFrameCount)){\n' +
+    "  introLoadState.value='ready';\n" +
+    '  return;\n' +
+    ' }\n' +
+    ' introLoadRaf=requestAnimationFrame(probeIntroStability);\n' +
+    '}\n' +
+    'function scheduleIntroStability():void {\n' +
+    " if(introLoadState.value!=='loading'||!mounted||!introGateVisible()||\n" +
+    "    !placementReady.value||!fontsReady.value||heroMedia.value?.phase!=='ready')return;\n" +
+    ' if(introLoadRaf===null)introLoadRaf=requestAnimationFrame(probeIntroStability);\n' +
+    '}\n' +
+    'function syncIntroGate():void {\n' +
+    ' if(!mounted)return;\n' +
+    " if(!introGateVisible()||window.scrollY>2||introLoadState.value==='failed'){\n" +
+    '  releaseIntroScrollLock();\n' +
+    '  if(introLoadWatchdog!==null)clearTimeout(introLoadWatchdog);\n' +
+    '  introLoadWatchdog=null;return;\n' +
+    ' }\n' +
+    " if(introLoadState.value==='loading'){\n" +
+    '  acquireIntroScrollLock();\n' +
+    '  if(introLoadWatchdog===null){\n' +
+    "   introLoadWatchdog=window.setTimeout(()=>failIntroLoading('INTRO_R1F_MEDIA_OR_GEOMETRY_TIMEOUT'),INTRO_MEDIA_TIMEOUT_MS);\n" +
+    '  }\n' +
+    '  scheduleIntroStability();\n' +
+    '  return;\n' +
+    ' }\n' +
+    " if(phase.value==='idle'||phase.value==='released'){\n" +
+    '  releaseIntroScrollLock();\n' +
+    '  if(introLoadWatchdog!==null)clearTimeout(introLoadWatchdog);\n' +
+    '  introLoadWatchdog=null;\n' +
+    "  if(phase.value==='idle'&&bufferedIntent!==null){\n" +
+    '   const intent=bufferedIntent;\n' +
+    '   bufferedIntent=null;\n' +
+    "   if(!requestBufferedIntent(intent))console.error('INTRO_R1F_BUFFERED_INTENT_NOT_ADMITTED',intent);\n" +
+    '  }\n' +
+    ' }\n' +
+    '}\n' +
+    'function onFilmMediaStatus(status:HeroMediaStatus):void {\n' +
+    ' heroMedia.value=status;\n' +
+    " if(status.phase==='failed')failIntroLoading(status.reason??'HERO_CAROUSEL_MEDIA_FAILED');\n" +
+    ' else scheduleIntroStability();\n' +
+    '}\n' +
+    'function onIntroGateEnvironment():void {\n' +
+    ' if(introLoadRaf!==null){cancelAnimationFrame(introLoadRaf);introLoadRaf=null;}\n' +
+    " stableFrameCount=0;lastLayoutStamp='';\n" +
+    ' syncIntroGate();\n' +
+    '}\n' +
+    'function onFilmGeometry(geometry:FilmPaintGeometry):void {\n' +
+    ' if(geometry.generation<lastGeneration)return;\n' +
+    ' lastGeneration=geometry.generation;\n' +
+    ' filmGeometry.value=geometry;\n' +
+    ' scheduleGeometry();\n' +
+    '}\n' +
+    'function updateViewportGeometry():void {\n' +
+    ' if(!mounted||!paintFrame.value)return;\n' +
+    ' try {\n' +
+    "  const header=document.querySelector<HTMLElement>('.smd-site-header');\n" +
+    '  if(!header)t'... 11511 more characters
+  
+      at verifyHomeComposition (file:///workspace/scratch/c60cf69663bd/baseline/scripts/lib/home-r2-cf2.mjs:22:12)
+      at TestContext.<anonymous> (file:///workspace/scratch/c60cf69663bd/baseline/scripts/tests/home-r2-cf2-composition.test.mjs:9:15)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.start (node:internal/test_runner/test:1262:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:387:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '<script setup lang="ts">\nimport { computed, nextTick, onBeforeUnmount, onMounted, ref, useId, watch } from \'vue\';\nimport FigmaSceneSection from \'~/components/figma/FigmaSceneSection.vue\';\nimport HeroSection from \'~/components/home/HeroSection.vue\';\nimport HomeInfoBar from \'~/components/home/HomeInfoBar.vue\';\nimport { useHomeIntroReveal } from \'~/composables/useHomeIntroReveal\';\nimport { figmaScene } from \'~/data/figma-r2-scene.generated\';\nimport { homeInfoLayout } from \'~/utils/homeInfoLayout\';\nimport { planIntroViewportHeight, titleSafeOverlay, type TitleSafetyRect } from \'~/utils/homeIntroViewportGeometry\';\nimport { planIntroTitleSafeMinimumHeight } from \'~/utils/homeIntroTitleSafeHeight\';\nimport { canPresentIntro, INTRO_MEDIA_TIMEOUT_MS, type HeroMediaStatus } from \'~/utils/homeIntroMediaGate\';\nimport {\n  planIntroOverlay, type FilmPaintGeometry, type IntroOverlayPlacement, type IntroVariant,\n} from \'~/utils/homeIntroOverlayGeometry\';\n\nconst props = withDefaults(defineProps<{variant?:IntroVariant}>(),{variant:\'figma\'});\nconst emit = defineEmits<{completed: []}>();\nconst root=ref<HTMLElement|null>(null);\nconst paintFrame=ref<HTMLElement|null>(null);\nconst overlay=ref<HTMLElement|null>(null);\nconst filmGeometry=ref<FilmPaintGeometry|null>(null);\nconst placement=ref<IntroOverlayPlacement|null>(null);\nconst viewportPaintHeight=ref<number|null>(null);\n// The viewport is a minimum. A short viewport may need extra vertical space\n// for the original title and the bottom-anchored Intro Info Bar to coexist.\nconst titleSafeMinimumHeight=ref(0);\nconst effectivePaintHeight=computed<number|null>(()=>viewportPaintHeight.value===null?null:\n Math.max(viewportPaintHeight.value,titleSafeMinimumHeight.value));\n\nconst paintFrameStyle = computed<Record<string, string>>(() => ({\n  height: effectivePaintHeight.value === null\n    ? \'100svh\'\n    : `${effectivePaintHeight.value}px`,\n}));\n\nconst titleSafetyOverlap=ref(0);\nconst viewportFault=ref<string|null>(null);\nconst placementReady=computed(()=>placement.value?.kind===\'admitted\');\nconst heroMedia=ref<HeroMediaStatus|null>(null);\nconst fontsReady=ref(false);\nconst introLoadState=ref<\'loading\'|\'ready\'|\'failed\'>(\'loading\');\nconst introLoadFault=ref<string|null>(null);\nconst introInteractionReady=computed(()=>introLoadState.value===\'ready\'&&placementReady.value);\nconst introGateOwnerId=useId();\nconst introRoute=\'vue-overlay\' as const;\nconst {phase,admitted,admissionReason,releaseReason,ignoredWheelEvents,animationStarts,\n visualState,firstIntent,presentation,requestBufferedIntent}=useHomeIntroReveal(root,introRoute,introInteractionReady);\nlet mounted=false,resizeObserver:ResizeObserver|null=null;\nlet geometryEpoch=0, scheduled=false, lastGeneration=-1;\nlet titleSafeGrowAttempts=0;\nlet completionEmitted=false;\nlet introLoadRaf:number|null=null, introLoadWatchdog:number|null=null;\nlet introGateLocked=false, bufferedIntent:\'wheel\'|\'keyboard\'|\'native-scroll\'|null=null;\nlet fingerY:number|null=null, stableFrameCount=0, lastLayoutStamp=\'\';\n\n/** Loading gate only owns the initially visible Intro; the hidden responsive twin stays inert. */\nfunction introGateVisible():boolean {\n const el=root.value;\n if(!el||!el.isConnected||document.hidden||!el.getClientRects().length)return false;\n const bounds=el.getBoundingClientRect();\n return bounds.width>0&&bounds.height>0&&getComputedStyle(el).display!==\'none\';\n}\nfunction captureBufferedIntent(source:\'wheel\'|\'keyboard\'|\'native-scroll\'):void {\n if(bufferedIntent===null)bufferedIntent=source;\n}\nfunction onGateWheel(event:WheelEvent):void {\n if(event.ctrlKey)return;\n if(event.cancelable)event.preventDefault();\n event.stopImmediatePropagation();\n if(event.deltaY>0&&Math.abs(event.deltaY)>=Math.abs(event.deltaX)&&\n    !(event.target instanceof Element&&event.target.closest(\'input,textarea,select,[contenteditable],button,a\'))){\n  captureBufferedIntent(\'wheel\');\n }\n}\nfunction onGateKey(event:KeyboardEvent):void {\n if(event.altKey||event.ctrlKey||event.metaKey||\n    (event.target instanceof Element&&event.target.closest(\'input,textarea,select,[contenteditable],button,a\')))return;\n switch(event.key){\n  case \'ArrowDown\':case \'PageDown\':case \' \':case \'ArrowUp\':case \'PageUp\':case \'Home\':case \'End\':\n   if(event.cancelable)event.preventDefault();\n   event.stopImmediatePropagation();\n   if([\'ArrowDown\',\'PageDown\',\' \'].includes(event.key))captureBufferedIntent(\'keyboard\');\n   break;\n }\n}\nfunction onGateTouchStart(event:TouchEvent):void {\n fingerY=event.touches.length===1?event.touches[0]!.clientY:null;\n}\nfunction onGateTouchMove(event:TouchEvent):void {\n if(event.touches.length===1&&fingerY!==null&&fingerY-event.touches[0]!.clientY>10)\n  captureBufferedIntent(\'native-scroll\');\n if(event.cancelable)event.preventDefault();\n event.stopImmediatePropagation();\n}\nfunction releaseIntroScrollLock():void {\n if(!introGateLocked)return;\n introGateLocked=false;\n window.removeEventListener(\'wheel\',onGateWheel,true);\n window.removeEventListener(\'keydown\',onGateKey,true);\n window.removeEventListener(\'touchstart\',onGateTouchStart,true);\n window.removeEventListener(\'touchmove\',onGateTouchMove,true);\n if(document.documentElement.dataset.smdIntroLoadLockOwner===introGateOwnerId)\n  delete document.documentElement.dataset.smdIntroLoadLockOwner;\n fingerY=null;\n}\nfunction acquireIntroScrollLock():void {\n if(introGateLocked)return;\n const html=document.documentElement;\n if(html.dataset.smdIntroLoadLockOwner&&html.dataset.smdIntroLoadLockOwner!==introGateOwnerId)return;\n html.dataset.smdIntroLoadLockOwner=introGateOwnerId;\n window.addEventListener(\'wheel\',onGateWheel,{capture:true,passive:false});\n window.addEventListener(\'keydown\',onGateKey,true);\n window.addEventListener(\'touchstart\',onGateTouchStart,{capture:true,passive:true});\n window.addEventListener(\'touchmove\',onGateTouchMove,{capture:true,passive:false});\n introGateLocked=true;\n}\nfunction emitIntroCompleted():void {\n if(completionEmitted)return;\n completionEmitted=true;\n emit(\'completed\');\n}\nfunction failIntroLoading(reason:string):void {\n if(introLoadState.value===\'failed\')return;\n introLoadState.value=\'failed\';introLoadFault.value=reason;\n console.error(\'INTRO_R1F_LOAD_GATE_FAILED\',reason);\n releaseIntroScrollLock();\n if(introLoadRaf!==null)cancelAnimationFrame(introLoadRaf);\n introLoadRaf=null;\n if(introLoadWatchdog!==null)clearTimeout(introLoadWatchdog);\n introLoadWatchdog=null;\n // Failure is explicit; downstream body must not remain forever unarmed.\n emitIntroCompleted();\n}\nfunction introLayoutStamp():string|null {\n if(!paintFrame.value||!overlay.value||placement.value?.kind!==\'admitted\'||!filmGeometry.value)return null;\n const frame=paintFrame.value.getBoundingClientRect();\n const film=filmGeometry.value;\n if(Math.abs(film.viewportRectCss.width-frame.width)>1||\n    Math.abs(film.viewportRectCss.height-frame.height)>1)return null;\n const plan=placement.value;\n const svg=overlay.value.querySelector<SVGSVGElement>(\'.smd-figma-scene-section--info-bar > svg\');\n const content=props.variant===\'figma\'?svg:overlay.value.querySelector<HTMLElement>(\'.smd-home--info-bar\');\n if(!content)return null;\n const contentRect=content.getBoundingClientRect();\n const values=[frame.left,frame.top,frame.width,frame.height,\n  contentRect.width,contentRect.height,plan.topCssPx,plan.heightCssPx];\n if(!values.every(Number.isFinite))return null;\n return values.map(v=>Math.round(v*4)/4).join(\'|\');\n}\nfunction probeIntroStability():void {\n introLoadRaf=null;\n if(!mounted||introLoadState.value!==\'loading\'||!introGateVisible())return;\n if(!placementReady.value||!fontsReady.value||heroMedia.value?.phase!==\'ready\'){\n  stableFrameCount=0;lastLayoutStamp=\'\';return;\n }\n const sample=introLayoutStamp();\n if(sample===null){stableFrameCount=0;lastLayoutStamp=\'\';return;}\n stableFrameCount=sample===lastLayoutStamp?stableFrameCount+1:1;\n lastLayoutStamp=sample;\n if(canPresentIntro(heroMedia.value,placementReady.value,fontsReady.value,stableFrameCount)){\n  introLoadState.value=\'ready\';\n  return;\n }\n introLoadRaf=requestAnimationFrame(probeIntroStability);\n}\nfunction scheduleIntroStability():void {\n if(introLoadState.value!==\'loading\'||!mounted||!introGateVisible()||\n    !placementReady.value||!fontsReady.value||heroMedia.value?.phase!==\'ready\')return;\n if(introLoadRaf===null)introLoadRaf=requestAnimationFrame(probeIntroStability);\n}\nfunction syncIntroGate():void {\n if(!mounted)return;\n if(!introGateVisible()||window.scrollY>2||introLoadState.value===\'failed\'){\n  releaseIntroScrollLock();\n  if(introLoadWatchdog!==null)clearTimeout(introLoadWatchdog);\n  introLoadWatchdog=null;return;\n }\n if(introLoadState.value===\'loading\'){\n  acquireIntroScrollLock();\n  if(introLoadWatchdog===null){\n   introLoadWatchdog=window.setTimeout(()=>failIntroLoading(\'INTRO_R1F_MEDIA_OR_GEOMETRY_TIMEOUT\'),INTRO_MEDIA_TIMEOUT_MS);\n  }\n  scheduleIntroStability();\n  return;\n }\n if(phase.value===\'idle\'||phase.value===\'released\'){\n  releaseIntroScrollLock();\n  if(introLoadWatchdog!==null)clearTimeout(introLoadWatchdog);\n  introLoadWatchdog=null;\n  if(phase.value===\'idle\'&&bufferedIntent!==null){\n   const intent=bufferedIntent;\n   bufferedIntent=null;\n   if(!requestBufferedIntent(intent))console.error(\'INTRO_R1F_BUFFERED_INTENT_NOT_ADMITTED\',intent);\n  }\n }\n}\nfunction onFilmMediaStatus(status:HeroMediaStatus):void {\n heroMedia.value=status;\n if(status.phase===\'failed\')failIntroLoading(status.reason??\'HERO_CAROUSEL_MEDIA_FAILED\');\n else scheduleIntroStability();\n}\nfunction onIntroGateEnvironment():void {\n if(introLoadRaf!==null){cancelAnimationFrame(introLoadRaf);introLoadRaf=null;}\n stableFrameCount=0;lastLayoutStamp=\'\';\n syncIntroGate();\n}\nfunction onFilmGeometry(geometry:FilmPaintGeometry):void {\n if(geometry.generation<lastGeneration)return;\n lastGeneration=geometry.generation;\n filmGeometry.value=geometry;\n scheduleGeometry();\n}\nfunction updateViewportGeometry():void {\n if(!mounted||!paintFrame.value)return;\n try {\n  const header=document.querySelector<HTMLElement>(\'.smd-site-header\');\n  if(!header)t'... 11511 more characters,
+    expected: /<HeroSection v-else @film-paint-geometry="onFilmGeometry"\s*\/>/,
+    operator: 'match',
+    diff: 'simple'
+  }

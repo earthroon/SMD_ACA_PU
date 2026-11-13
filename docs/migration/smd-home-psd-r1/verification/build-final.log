@@ -1,0 +1,27 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> build
+> npm run verify:home-psd && npm run verify:home-media && npm run test:hero-carousel && npm run verify:about && npm run verify:curriculum && node scripts/verify-contract-artifact.mjs && nuxt build
+
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> verify:home-psd
+> node --experimental-strip-types scripts/home-psd-r1/verify-source.mjs
+
+{"status":"PASS","tier":"SOURCE_STATIC","layers":131,"texts":68,"shapes":42,"smartObjects":13,"mappedFigmaTextNodes":49,"mappedPsdTextLayers":52,"protectedFiles":51,"productionPresentation":"current","pixelParity":"NOT_CLAIMED"}
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> verify:home-media
+> node --experimental-strip-types scripts/verify-home-local-media.mjs
+
+file:///workspace/scratch/c60cf69663bd/repo/scripts/verify-home-local-media.mjs:18
+    throw new Error(`SMD_HOME_LOCAL_MEDIA_FILE_MISSING:${slotId}:${item.src}`);
+          ^
+
+Error: SMD_HOME_LOCAL_MEDIA_FILE_MISSING:home.special-start.photo:/media/home/statement.png
+    at file:///workspace/scratch/c60cf69663bd/repo/scripts/verify-home-local-media.mjs:18:11
+    at ModuleJob.run (node:internal/modules/esm/module_job:561:25)
+    at async node:internal/modules/esm/loader:647:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+
+Node.js v24.22.1

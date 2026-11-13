@@ -1,0 +1,22 @@
+{
+  "status": "PASS",
+  "tier": "SOURCE",
+  "byteIdenticalFiles": [
+    {
+      "path": "docs/migration/smd-home-psd-r1/source-manifest.json",
+      "sha256": "0712113fc4fb47af3beb4411c91a78717c6b4d0adfeba85afabf8cf8c9353736"
+    },
+    {
+      "path": "app/data/home-psd-r1-manifest.ts",
+      "sha256": "a53387427dbdb9e978fe8a6db82127d7cbc36608539720ed71312987906edafe"
+    },
+    {
+      "path": "app/data/home-psd-r1-copy.generated.ts",
+      "sha256": "e6320c18841340a1d0be0bf182e6d350ec7757931995d4fcee8f531dae2027a9"
+    },
+    {
+      "path": "app/data/home-psd-r1-mapping.ts",
+      "sha256": "efb3006da04ac775f28c5b13d1439959077e0b96e4f2b6bbab1edc7ef0748635"
+    }
+  ]
+}

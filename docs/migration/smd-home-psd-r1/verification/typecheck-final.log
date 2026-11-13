@@ -1,0 +1,11 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> typecheck
+> nuxt typecheck
+
+
+ WARN  Duplicated imports "STANDALONE_PREVIEW_PUBLICATION_ID", the one from "/workspace/scratch/c60cf69663bd/repo/app/utils/publicExternalActionPolicy.ts" has been ignored and "/workspace/scratch/c60cf69663bd/repo/app/utils/publicStandalonePreview.ts" is used
+
+
+ WARN  Duplicated imports "STANDALONE_PREVIEW_PUBLICATION_ID", the one from "/workspace/scratch/c60cf69663bd/repo/app/utils/publicExternalActionPolicy.ts" has been ignored and "/workspace/scratch/c60cf69663bd/repo/app/utils/publicStandalonePreview.ts" is used
+

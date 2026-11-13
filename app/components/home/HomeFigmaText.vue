@@ -1,5 +1,7 @@
 
 <script setup lang="ts">
+import HomeSourceText from './HomeSourceText.vue';
+import { homePsdLayersForFigma } from '~/utils/homePsdR1Mapping';
 import { homeFigmaText, type HomeFigmaTextKey } from '~/data/home-r2-copy';
 import { homeR2VisualText } from '~/data/home-r2-visual-text';
 import { homeVisibleBrandText } from '~/utils/homeBrandVisibleText';
@@ -52,10 +54,24 @@ const text = computed(() => {
 });
 
 const source = computed(() => homeFigmaText[props.textKey]);
+const psdLayers = computed(() => homePsdLayersForFigma(props.textKey));
+// CF2 explicitly retains current presentation until the CF4 layout/paint migration.
+const currentRuns = computed(() => text.value.map((run, index) => ({
+  characters: homeTrainingTimelineVisibleText(props.textKey,
+    homeBenefitsVisibleText(props.textKey, homeVisibleFilmText(props.textKey,
+      homeVisibleBrandText(props.textKey, run.characters)))),
+  style: textKeyStyle(run.style),
+  specialEmphasis: isHomeSpecialEmphasisRun(props.textKey, index),
+})));
+function textKeyStyle(style: Readonly<Record<string, string | number>>) {
+  return props.textKey === HOME_FILM_INFO_NODE ? { ...style, whiteSpace: 'nowrap !important' } : style;
+}
 </script>
 
 <template>
-  <span
+  <HomeSourceText v-if="psdLayers" mode="current" :layer-ids="psdLayers" :current-runs="currentRuns"
+    class="smd-home-figma-text" :data-figma-text="textKey" :data-text-digest="source.textDigest" />
+  <span v-else
     class="smd-home-figma-text"
     :data-figma-text="textKey"
     :data-text-digest="source.textDigest"

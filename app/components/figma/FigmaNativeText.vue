@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { homePsdLayersForFigma } from '~/utils/homePsdR1Mapping';
+import { homePsdR1Source } from '~/data/home-psd-r1-manifest';
 import {figmaScene} from '~/data/figma-r2-scene.generated';
 import {r3MethodsTextOverride} from '~/data/figma-r2-visual-r3';
 import {homeVisibleBrandText} from '~/utils/homeBrandVisibleText';
@@ -15,6 +17,7 @@ import {homeTrainingTimelineVisibleText} from
   '~/utils/homeTrainingTimelineCopyPresentation';
 const props = defineProps<{nodeKey:string; width:number;height:number}>();
 const captionIndex = useState<number>('smd-hero-carousel-caption-r1', () => 0);
+const psdLayers = computed(() => homePsdLayersForFigma(props.nodeKey));
 const original = computed(() => figmaScene.texts[props.nodeKey]);
 const trainingPaintWidth = computed(() => homeTrainingR5PaintWidth(props.nodeKey, props.width));
 const visual = computed(() => r3MethodsTextOverride(props.nodeKey));
@@ -152,6 +155,9 @@ onUnmounted(() => {
     :x="paint.x" :y="paint.y" :width="paint.width" :height="paint.height"
     :data-figma-text-instance="nodeKey" :data-source-text-digest="original.digest"
     :data-source-rect="`${props.width}x${props.height}`"
+    :data-psd-layers="psdLayers?.join(',')"
+    :data-psd-sha256="psdLayers ? homePsdR1Source.psdSha256 : undefined"
+    :data-source-mode="psdLayers ? 'current' : undefined"
     :data-paint-window="`${paint.x},${paint.y},${paint.width},${paint.height}`"
     :data-ink-gate="inkGate" :data-font-gate="fontGate"
     :data-training-r5-paint-width="nodeKey === HOME_TRAINING_R5_FIELD_NODE ? trainingPaintWidth : undefined"

@@ -1,0 +1,43 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> test:hero-carousel
+> node --experimental-strip-types --test scripts/tests/hero-carousel-cf1-cf3.test.mjs scripts/tests/hero-dissolve-r2.test.mjs scripts/tests/hero-carousel-r1b-autoplay.test.mjs scripts/tests/hero-carousel-r1e-motion-controls.test.mjs scripts/tests/hero-carousel-r1g-typefix.test.mjs
+
+✔ CF1: stable source hero IDs, focal points and 3000ms policy (2.525365ms)
+✔ CF1: published binding authority and errors stay explicit (0.951015ms)
+✔ CF2: stationary dissolve replaces Embla without losing ownership or media gating (1.239127ms)
+✔ CF2: 3s, 700ms, 20ms, 420ms and 12px remain explicit (1.597875ms)
+✔ CF3: all slides cover a fixed full-size layered viewport, never translateX (0.699073ms)
+✔ CF3: typography remains in Figma/semantic source with 20ms delayed reveal (0.586748ms)
+✔ CF3: all requested aspect ratios retain source ratio under cover scaling (0.580721ms)
+✔ CF3: old Intro paint geometry and media admission ABI preserved (0.500144ms)
+✔ R1B/R2: hidden, unmounted or single-image owner never creates a timer (9.334742ms)
+✔ R1B/R2: active owner claims exactly one 3000ms timer (2.012822ms)
+✔ R1B/R2: another responsive instance lease is not stolen (1.576628ms)
+✔ R1B/R2: losing eligibility clears timer before lease release (1.992426ms)
+✔ R1B/R2: unmount path cannot reacquire released lease (0.476726ms)
+✔ R1E/R2: 3000ms autoplay, 700ms image fade and 20ms caption delay (1.473214ms)
+✔ R1E/R2: dot navigation replaces arrows and remains keyboard accessible (0.386112ms)
+✔ R1E/R2: no horizontal motion, both manual directions follow the same state machine (0.643402ms)
+✔ R1E/R2: hover keeps autoplay active, keyboard focus still pauses (0.249096ms)
+✔ R1E/R2: mobile touch swipe keeps vertical scrolling (0.184498ms)
+✔ R1E/R2: reduced motion disables both dissolve and autoplay (0.986689ms)
+✔ R1G no manufactured Event or unsafe casts in decode completion (1.838631ms)
+✔ R1G current-element check requires image element, matching src and active publication (2.78085ms)
+✔ R1G start returns boolean reflecting actual phase admission, not a TS-narrowed read (0.500628ms)
+✔ R1G buffered real intent triggers once, respects wheel and idle guard (2.038172ms)
+✔ R1G media gate and carousel control policies preserved (0.510991ms)
+✔ R2 layer state: one departing and one incoming paint owner (4.473898ms)
+✔ R2 index math: wrap in both directions; invalid inputs reject (1.129764ms)
+✔ R2 swipe: horizontal travel only, native vertical gesture preserved (0.413514ms)
+✔ R2 transition generation owns RAF/caption/timer and coalesces next input (0.364967ms)
+✔ R2 media gating and lease remain explicit across responsive instances (0.503886ms)
+✔ R2 image and captions are independently animated without Figma data edits (0.33784ms)
+ℹ tests 30
+ℹ suites 0
+ℹ pass 30
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 548.698923

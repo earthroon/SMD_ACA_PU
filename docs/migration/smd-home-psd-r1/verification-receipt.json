@@ -1,0 +1,131 @@
+{
+  "schema": "SMD_HOME_PSD_CF1_CF2_VERIFY_V1",
+  "createdUtc": "2026-11-13T05:05:41.880531+00:00",
+  "baseCommit": "2692fa20b0140457ff41431ea1ed3369dfc43889",
+  "psdSha256": "761707d94510eede8bf4e5603d4a468d721e37d475672b9ea4e31adccf9db27d",
+  "sourceManifestSha256": "0712113fc4fb47af3beb4411c91a78717c6b4d0adfeba85afabf8cf8c9353736",
+  "scope": "CF1 source/crosswalk freeze + CF2 tokens/text component; production presentation remains current",
+  "environment": {
+    "node": "v24.22.1",
+    "python": "Python 3.12.14",
+    "psdTools": "1.26.1",
+    "target": "Nuxt cloudflare-module"
+  },
+  "gates": [
+    {
+      "gate": "source-reextract",
+      "tier": "SOURCE",
+      "status": "PASS",
+      "byteIdenticalFiles": 4,
+      "receipt": "verification/regeneration.json",
+      "command": "PYTHONPATH=analysis_deps python3 repo/scripts/home-psd-r1/extract-source.py --source \"input/261022_smd_메인페이지 복사2.psd\" --root verification/regenerated",
+      "workingDirectory": "/workspace/scratch/c60cf69663bd"
+    },
+    {
+      "gate": "home-psd-contract-and-SSR",
+      "tier": "SOURCE_STATIC_AND_SSR_RUNTIME",
+      "status": "PASS",
+      "command": "npm run test:home-psd",
+      "exitCode": 0,
+      "tests": 12,
+      "currentTextComparisons": 228,
+      "log": "verification/home-psd-final.log"
+    },
+    {
+      "gate": "typecheck",
+      "tier": "COMPILE",
+      "status": "PASS",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "log": "verification/typecheck-final.log"
+    },
+    {
+      "gate": "nuxt-compilation",
+      "tier": "COMPILE",
+      "status": "PASS",
+      "command": "node node_modules/nuxt/bin/nuxt.mjs build",
+      "exitCode": 0,
+      "stdoutSha256": "eb274d3043948880c1bb18aff43f9f73b51638bc8c499576708d1bf05e1f74c6",
+      "scope": "Compilation only; standard build admission is not promoted",
+      "log": "verification/compile-final.log"
+    },
+    {
+      "gate": "hero-carousel",
+      "tier": "NODE_TEST_RUNTIME",
+      "status": "PASS",
+      "command": "npm run test:hero-carousel",
+      "tests": 30,
+      "log": "verification/hero-carousel.log"
+    },
+    {
+      "gate": "selected-existing-regression",
+      "tier": "SOURCE_STATIC_AND_NODE_TEST_RUNTIME",
+      "status": "BASELINE_FAILURES_REPRODUCED",
+      "tests": 54,
+      "passed": 52,
+      "failed": 2,
+      "failures": [
+        {
+          "file": "scripts/tests/header-wordmark-r1.test.mjs",
+          "reason": "expected header alpha 0.20; unchanged current source is 0.15"
+        },
+        {
+          "file": "scripts/tests/home-r2-cf2-composition.test.mjs",
+          "reason": "stale exact HeroSection tag regex predates media-status listener"
+        }
+      ],
+      "baselineReplay": {
+        "tests": 8,
+        "passed": 6,
+        "failed": 2,
+        "log": "verification/baseline-regression.log"
+      }
+    },
+    {
+      "gate": "standard-build",
+      "tier": "BUILD_ADMISSION",
+      "status": "BLOCKED_INPUT",
+      "command": "npm run build",
+      "exitCode": 1,
+      "firstBlockingError": "Error: SMD_HOME_LOCAL_MEDIA_FILE_MISSING:home.special-start.photo:/media/home/statement.png",
+      "cause": "Connector returned empty content for 20 large blobs; one empty file also omitted locally. No missing file is deleted from the remote base tree.",
+      "log": "verification/build-final.log"
+    },
+    {
+      "gate": "source-text-browser",
+      "tier": "BROWSER_RUNTIME",
+      "status": "BLOCKED_ENVIRONMENT",
+      "command": "npm run verify:home-psd-browser -- --font /workspace/scratch/c60cf69663bd/verification/PretendardVariable.woff2 --out /workspace/scratch/c60cf69663bd/verification/browser",
+      "exitCode": 1,
+      "reason": "Chromium aborted at process_singleton_posix socket(): Operation not permitted before page creation",
+      "receipt": "verification/browser-receipt.json"
+    }
+  ],
+  "claims": {
+    "sourceAndMappingFrozen": true,
+    "currentPresentationSSRParity": true,
+    "sourceTextBrowserMeasured": false,
+    "homepageVisualParity": false,
+    "psdPixelParity": false,
+    "standardBuildPassed": false,
+    "deployed": false
+  },
+  "remaining": [
+    "CF3 media/frame/slot implementation",
+    "CF4 single body layout and PSD paint adoption",
+    "Browser source-text measurements",
+    "Full checkout standard build",
+    "Full homepage visual comparison"
+  ],
+  "logSha256": {
+    "browser-receipt.json": "adad990a5e4b7754f8c63282c2928dc00bf65c8124e6462f886cc06db9093ebc",
+    "hero-carousel.log": "1859094fa57156be7cc0e99df811b010abd9a16945ae47b6dffd005f94dac039",
+    "typecheck-final.log": "4b363dfc8466e43e0ab21bf44fdd2ce84d22ae073fb3480f25f422cdbceec0cb",
+    "home-psd-final.log": "adcf036615ea88d4dbfcfde5a71c8493a2e6f85db2354f79ef87d96f65066d85",
+    "build-final.log": "da042bfc5e561b3a3b3dfbb5fea16e105afbf301f80f8de89f0c57f9931eb99e",
+    "compile-final.log": "eb274d3043948880c1bb18aff43f9f73b51638bc8c499576708d1bf05e1f74c6",
+    "baseline-regression.log": "29b9cd071742729824d3dd3680be901ac4cdc1c52eff4b1093b436378dc64056",
+    "regeneration.json": "ba2c3f8ab4d4d5e36e4ef10f55ec2f9272403ee036a20c831378ab2b63e2fdbb"
+  },
+  "workingDirectory": "/workspace/scratch/c60cf69663bd/repo"
+}

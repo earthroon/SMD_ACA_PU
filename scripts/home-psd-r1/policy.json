@@ -1,0 +1,56 @@
+{
+  "schema": "SMD_HOME_PSD_MAPPING_POLICY_V1",
+  "sourceSha256": "761707d94510eede8bf4e5603d4a468d721e37d475672b9ea4e31adccf9db27d",
+  "baseCommit": "2692fa20b0140457ff41431ea1ed3369dfc43889",
+  "sectionCandidates": [
+    ["hero", 0, 939], ["special-start", 939, 2038], ["training-track", 2038, 2934],
+    ["benefits", 2934, 4271], ["methods", 4271, 5282], ["location", 5282, 6456],
+    ["faq", 6456, 7421], ["consultation-cta", 7421, 8276], ["footer", 8276, 9003]
+  ],
+  "textMappings": {
+    "node-36:6": [126], "node-35:5": [125], "node-36:7": [127],
+    "node-1:133": [110], "node-1:132": [2068], "node-1:130": [2069], "node-1:128": [2070],
+    "node-18:120": [2063], "node-18:121": [2066], "node-18:122": [2067],
+    "node-1:103": [153], "node-1:104": [154], "node-1:102": [157], "node-1:101": [158],
+    "node-1:479": [1101], "node-1:478": [1102], "node-1:484": [1103], "node-1:483": [1104],
+    "node-1:492": [1106], "node-1:493": [1109], "node-1:499": [1110], "node-1:498": [1120], "node-1:494": [1121],
+    "node-1:92": [241, 242], "node-1:88": [469], "node-1:576": [1255], "node-1:578": [1256],
+    "node-18:147": [770], "node-18:148": [1266], "node-18:149": [1267],
+    "node-18:128": [771], "node-18:150": [1268], "node-18:151": [1269],
+    "node-18:134": [772], "node-18:152": [1270], "node-18:153": [1271],
+    "node-1:60": [853], "node-18:114": [858], "node-18:115": [859],
+    "node-1:61": [1257], "node-1:62": [1258], "node-18:116": [1259], "node-18:117": [1260],
+    "node-1:50": [860], "node-1:49": [861], "node-1:48": [862], "node-1:24": [1042],
+    "node-35:4": [1076, 1077, 1265], "node-35:3": [1080]
+  },
+  "mediaMappings": [
+    {"layerId": 1276, "clipLayerId": 122, "figmaNode": null, "slotId": null, "sectionId": "hero", "disposition": "RETAIN_CURRENT_CAROUSEL"},
+    {"layerId": 133, "clipLayerId": 132, "figmaNode": "node-1:126", "slotId": "home.special-start.photo", "sectionId": "special-start", "disposition": "CF3_CANDIDATE"},
+    {"layerId": 1127, "clipLayerId": 152, "figmaNode": null, "slotId": null, "sectionId": "training-track", "disposition": "CF3_NEW_SLOT_CANDIDATE"},
+    {"layerId": 1262, "clipLayerId": 855, "figmaNode": "node-1:54", "slotId": "home.methods.01.image", "sectionId": "methods", "disposition": "CF3_CANDIDATE"},
+    {"layerId": 1263, "clipLayerId": 856, "figmaNode": "node-1:56", "slotId": "home.methods.02.image", "sectionId": "methods", "disposition": "CF3_CANDIDATE"},
+    {"layerId": 1264, "clipLayerId": 857, "figmaNode": "node-1:58", "slotId": "home.methods.03.image", "sectionId": "methods", "disposition": "CF3_CANDIDATE"},
+    {"layerId": 1274, "clipLayerId": 1072, "figmaNode": null, "slotId": null, "sectionId": "consultation-cta", "disposition": "CF3_NEW_SLOT_CANDIDATE"}
+  ],
+  "shapeMappings": {
+    "243": {"figmaNode": "node-1:86", "slotId": "home.benefits.01.image"},
+    "244": {"figmaNode": "node-18:145", "slotId": "home.benefits.02.image"},
+    "245": {"figmaNode": "node-18:126", "slotId": "home.benefits.03.image"},
+    "246": {"figmaNode": "node-18:132", "slotId": "home.benefits.04.image"}
+  },
+  "dispositions": {
+    "108": "OCCLUDED_RESIDUAL_CANDIDATE", "109": "OCCLUDED_RESIDUAL_CANDIDATE", "102": "HIDDEN_SOURCE",
+    "113": "RETAIN_CURRENT_HEADER", "1368": "RETAIN_CURRENT_HEADER", "114": "RETAIN_CURRENT_HEADER",
+    "116": "RETAIN_CURRENT_HEADER", "117": "RETAIN_CURRENT_HEADER", "119": "RETAIN_CURRENT_HEADER", "120": "RETAIN_CURRENT_HEADER", "121": "RETAIN_CURRENT_HEADER",
+    "125": "RETAIN_CURRENT_CAROUSEL", "126": "RETAIN_CURRENT_CAROUSEL", "127": "RETAIN_CURRENT_CAROUSEL",
+    "1044": "FAQ_PLACEHOLDER_NOT_CONTENT", "1057": "FAQ_PLACEHOLDER_NOT_CONTENT", "1059": "FAQ_PLACEHOLDER_NOT_CONTENT", "1061": "FAQ_PLACEHOLDER_NOT_CONTENT",
+    "1973": "UNASSIGNED_MORE_ACTION", "1974": "UNASSIGNED_MORE_ACTION", "1082": "RETAIN_CURRENT_FOOTER", "1819": "EMPTY_SOURCE_TEXT"
+  },
+  "operationalExceptions": [
+    "Current carousel, captions, SVG header and navigation remain authoritative.",
+    "Current FAQ questions, answers and consultation URL remain authoritative.",
+    "PSD FAQ repetition and FOOTER are placeholders, not publishable content.",
+    "Existing display corrections remain explicit in current presentation; raw PSD and Figma are immutable.",
+    "CF1/CF2 attach provenance and provide a source text renderer. Production layout and paint switch is deferred to CF4."
+  ]
+}

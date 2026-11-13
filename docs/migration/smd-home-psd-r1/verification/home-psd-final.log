@@ -1,0 +1,25 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> test:home-psd
+> node --experimental-strip-types --test scripts/home-psd-r1/tests/*.test.mjs
+
+✔ all 76 current text nodes × 3 carousel captions retain baseline SSR text, styles and emphasis (1400.764715ms)
+✔ pinned PSD, generated tables, mappings and protected Figma sources agree (35.849976ms)
+✔ manifest tampering is rejected before generated code is trusted (25.949089ms)
+✔ many-to-one mapping retains ordered PSD layers; placeholders have no target (0.766038ms)
+✔ CR paragraphs retain raw content, separate baselines and mixed emphasis (0.782304ms)
+✔ UTF-16 supplementary characters and a CR boundary are not counted as code points (0.353023ms)
+✔ center alignment is anchored on the baseline origin after per-run scaling (0.626295ms)
+✔ 97 percent run advances change subsequent origins without dropping source matrix (0.418787ms)
+✔ missing, zero, negative and nonfinite measurements never become plausible widths (0.392387ms)
+✔ source caps and faux italic are display properties, not raw text edits (1.194608ms)
+✔ color and background alpha have distinct owners; similar composites are not aliases (0.361662ms)
+✔ wrong source identity, unsupported metrics and unsupported style fail explicitly (0.859845ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2112.960676
